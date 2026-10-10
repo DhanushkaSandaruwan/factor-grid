@@ -142,7 +142,7 @@ export function ProjectTeam({ projectId, team, canManage }) {
   };
 
   return (
-    <Card className="shadow-enterprise [--card-spacing:--spacing(4)]">
+    <Card className="shadow-project [--card-spacing:--spacing(4)]">
       <CardHeader>
         <CardTitle>Team members</CardTitle>
         <CardDescription>People with access to this project.</CardDescription>

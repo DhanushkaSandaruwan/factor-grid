@@ -34,11 +34,11 @@ export default async function ProjectPage({ params }) {
   const canEdit = isOwner || isEditor;
 
   return (
-    // On xl+ screens the page fits the viewport: the three columns scroll
+    // On xl+ screens the page fits the viewport: the four columns scroll
     // internally instead of the page. On smaller screens the page scrolls
     // normally and the columns stack.
     <div className="scrollbar-refined h-full overflow-y-auto xl:overflow-hidden">
-      <div className="mx-auto flex min-h-full w-full max-w-[1600px] flex-col gap-4 p-4 sm:p-6 xl:h-full xl:min-h-0">
+      <div className="flex min-h-full w-full flex-col gap-4 p-4 sm:p-6 xl:h-full xl:min-h-0">
         <header className="flex flex-wrap items-center gap-3">
           <BackButton fallbackHref="/dashboard" />
           <div className="min-w-0 flex-1 space-y-0.5">
@@ -70,15 +70,18 @@ export default async function ProjectPage({ params }) {
           )}
         </header>
 
-        <div className="grid flex-1 gap-4 xl:min-h-0 xl:grid-cols-3">
-          <section className="scrollbar-refined flex flex-col gap-4 xl:min-h-0 xl:overflow-y-auto">
+        {/* Each column scrolls internally, which clips its children's shadows at the
+            scrollport edge. The negative margin plus matching padding keeps the cards
+            in place while giving their shadows room to render. */}
+        <div className="grid flex-1 gap-4 xl:min-h-0 xl:grid-cols-4">
+          <section className="scrollbar-refined flex flex-col gap-4 xl:-m-1 xl:min-h-0 xl:overflow-y-auto xl:p-1">
             <ProjectMetrics analytics={analytics} />
           </section>
-          <section className="scrollbar-refined flex flex-col gap-4 xl:min-h-0 xl:overflow-y-auto">
+          <section className="scrollbar-refined grid gap-4 xl:-m-1 xl:col-span-2 xl:min-h-0 xl:grid-rows-2 xl:overflow-y-auto xl:p-1">
             <ProjectCharts analytics={analytics} />
-          </section>
-          <section className="scrollbar-refined flex flex-col gap-4 xl:min-h-0 xl:overflow-y-auto">
             <ProjectTrendCard analytics={analytics} />
+          </section>
+          <section className="scrollbar-refined flex flex-col gap-4 xl:-m-1 xl:min-h-0 xl:overflow-y-auto xl:p-1">
             <ProjectTeam projectId={String(project._id)} team={team} canManage={canEdit} />
           </section>
         </div>

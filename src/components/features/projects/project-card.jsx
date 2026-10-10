@@ -41,67 +41,70 @@ export function ProjectCard({ project, issueStats }) {
   ];
 
   return (
-    <Card className="flex h-full flex-col [--card-spacing:--spacing(4)]">
-      <CardHeader>
-        <CardTitle className="line-clamp-1">{project.title}</CardTitle>
-        <CardDescription className="line-clamp-1">{project.client}</CardDescription>
+    <Card
+      size="sm"
+      className="flex h-full flex-col gap-2 [--card-spacing:--spacing(2.5)]"
+    >
+      <CardHeader className="gap-0.5">
+        <CardTitle className="line-clamp-1 text-sm">{project.title}</CardTitle>
+        <CardDescription className="line-clamp-1 text-xs">{project.client}</CardDescription>
         <CardAction>
-          <span className="bg-accent text-accent-foreground inline-flex h-6 items-center rounded-md px-2 font-mono text-xs font-semibold">
+          <span className="bg-accent text-accent-foreground inline-flex h-5 items-center rounded px-1.5 font-mono text-[0.65rem] font-semibold">
             {project.issueIdPrefix}
           </span>
         </CardAction>
       </CardHeader>
-      <CardContent className="flex flex-1 flex-col gap-3">
-        <p className="text-muted-foreground line-clamp-2 text-sm">
+      <CardContent className="flex flex-1 flex-col gap-1.5 py-0">
+        <p className="text-muted-foreground line-clamp-1 text-xs">
           {project.description || 'No description provided.'}
         </p>
-        <dl className="mt-auto space-y-3 border-t pt-3">
-          <div className="grid grid-cols-4 gap-2">
+        <dl className="mt-auto space-y-1.5 border-t pt-1.5">
+          <div className="grid grid-cols-4 gap-1.5">
             {stats.map(({ label, value }) => (
-              <div key={label} className="space-y-0.5">
-                <dt className="text-muted-foreground text-[0.7rem] font-medium uppercase tracking-wide">
+              <div key={label} className="space-y-0">
+                <dt className="text-muted-foreground text-[0.6rem] font-medium uppercase tracking-wide">
                   {label}
                 </dt>
-                <dd className="text-sm font-semibold tabular-nums">{value}</dd>
+                <dd className="text-xs font-semibold tabular-nums">{value}</dd>
               </div>
             ))}
           </div>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-4 gap-1.5">
             {issueActivity.map(({ label, value }) => (
-              <div key={label} className="space-y-0.5">
-                <dt className="text-muted-foreground text-[0.7rem] font-medium uppercase tracking-wide">
+              <div key={label} className="space-y-0">
+                <dt className="text-muted-foreground text-[0.6rem] font-medium uppercase tracking-wide">
                   {label}
                 </dt>
-                <dd className="text-sm font-semibold tabular-nums">{value}</dd>
+                <dd className="text-xs font-semibold tabular-nums">{value}</dd>
               </div>
             ))}
           </div>
         </dl>
       </CardContent>
-      <CardFooter className="justify-between">
-        <span className="text-muted-foreground text-xs">
+      <CardFooter className="justify-between gap-1 py-1.5">
+        <span className="text-muted-foreground text-[0.65rem]">
           Created {formatDate(project.createdAt)}
         </span>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           <Link
             href={`/projects/${id}/registry`}
-            className={buttonVariants({ variant: 'secondary', size: 'sm' })}
+            className={buttonVariants({ variant: 'secondary', size: 'sm', className: 'h-6 px-1.5 text-[0.65rem]' })}
           >
-            <ClipboardList data-icon="inline-start" />
+            <ClipboardList data-icon="inline-start" className="size-2.5" />
             Registry
           </Link>
           <Link
             href={`/projects/${id}`}
-            className={buttonVariants({ variant: 'outline', size: 'sm' })}
+            className={buttonVariants({ variant: 'outline', size: 'sm', className: 'h-6 px-1.5 text-[0.65rem]' })}
           >
-            <Eye data-icon="inline-start" />
+            <Eye data-icon="inline-start" className="size-2.5" />
             View
           </Link>
           <Link
             href={`/projects/${id}/edit`}
-            className={buttonVariants({ variant: 'ghost', size: 'sm' })}
+            className={buttonVariants({ variant: 'ghost', size: 'sm', className: 'h-6 px-1.5 text-[0.65rem]' })}
           >
-            <Pencil data-icon="inline-start" />
+            <Pencil data-icon="inline-start" className="size-2.5" />
             Edit
           </Link>
         </div>

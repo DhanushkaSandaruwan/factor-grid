@@ -3,13 +3,12 @@ import { IssueTrendsLineChart } from './charts/issue-trends-line-chart';
 
 /**
  * Issue trends card — cumulative total issues from the first reported
- * issue to the current month. Flexes to fill the remaining column height
- * above the team card on xl+ screens.
+ * issue to the current month. Fills the row height on xl+ screens.
  * @param {{ analytics: object }} props
  */
 export function ProjectTrendCard({ analytics }) {
   return (
-    <Card className="shadow-enterprise xl:min-h-0 xl:flex-1 [--card-spacing:--spacing(3)]">
+    <Card className="shadow-project xl:min-h-0 [--card-spacing:--spacing(3)]">
       <CardHeader>
         <CardTitle>Issue Trends (Total: {analytics.statusCounts.total})</CardTitle>
         <CardDescription className="text-xs">

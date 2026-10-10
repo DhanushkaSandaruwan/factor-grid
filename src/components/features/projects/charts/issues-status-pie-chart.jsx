@@ -14,11 +14,11 @@ const STATUS_COLORS = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)'];
 
 /**
  * Issues report — status distribution (open, closed, transferred).
- * @param {{ data: {name: string, value: number}[] }} props
+ * @param {{ data: {name: string, value: number}[], className?: string }} props
  */
-export function IssuesStatusPieChart({ data }) {
+export function IssuesStatusPieChart({ data, className = 'h-[190px] xl:h-auto xl:min-h-[160px] xl:flex-1' }) {
   return (
-    <div className="h-[190px] xl:h-auto xl:min-h-[160px] xl:flex-1">
+    <div className={className}>
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
         <Tooltip contentStyle={TOOLTIP_STYLE} />

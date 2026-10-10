@@ -4,7 +4,7 @@ import { IssuesStatusPieChart } from './charts/issues-status-pie-chart';
 
 /**
  * Project status charts — monthly issue breakdown (bar) and issues report
- * (pie). The cards flex to fill the column height on xl+ screens so the
+ * (pie), side by side. The cards fill the row height on xl+ screens so the
  * page fits the viewport without scrolling.
  * @param {{ analytics: object }} props
  */
@@ -16,8 +16,8 @@ export function ProjectCharts({ analytics }) {
   ];
 
   return (
-    <div className="flex flex-col gap-4 xl:min-h-0 xl:flex-1">
-      <Card className="shadow-enterprise xl:min-h-0 xl:flex-1 [--card-spacing:--spacing(3)]">
+    <div className="grid gap-4 xl:min-h-0 xl:grid-cols-2 xl:grid-rows-1">
+      <Card className="shadow-project xl:min-h-0 [--card-spacing:--spacing(3)]">
         <CardHeader>
           <CardTitle>Monthly Issue Breakdown</CardTitle>
           <CardDescription className="text-xs">
@@ -29,7 +29,7 @@ export function ProjectCharts({ analytics }) {
         </CardContent>
       </Card>
 
-      <Card className="shadow-enterprise xl:min-h-0 xl:flex-1 [--card-spacing:--spacing(3)]">
+      <Card className="shadow-project xl:min-h-0 [--card-spacing:--spacing(3)]">
         <CardHeader>
           <CardTitle>Issues Report</CardTitle>
           <CardDescription className="text-xs">Share of issues by current status.</CardDescription>

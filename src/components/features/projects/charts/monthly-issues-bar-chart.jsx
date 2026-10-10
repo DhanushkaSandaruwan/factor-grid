@@ -20,11 +20,11 @@ const TOOLTIP_STYLE = {
 
 /**
  * Monthly issue breakdown by status (open, closed, transferred).
- * @param {{ data: {month: string, open: number, closed: number, transferred: number}[] }} props
+ * @param {{ data: {month: string, open: number, closed: number, transferred: number}[], className?: string }} props
  */
-export function MonthlyIssuesBarChart({ data }) {
+export function MonthlyIssuesBarChart({ data, className = 'h-[190px] xl:h-auto xl:min-h-[160px] xl:flex-1' }) {
   return (
-    <div className="h-[190px] xl:h-auto xl:min-h-[160px] xl:flex-1">
+    <div className={className}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
         <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--border)" />
