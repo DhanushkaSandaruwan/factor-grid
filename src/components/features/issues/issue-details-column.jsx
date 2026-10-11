@@ -3,6 +3,7 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { Pencil } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Spinner } from '@/components/ui/spinner';
 import { AddIssueDialog } from './add-issue-dialog';
 
 /**
@@ -46,7 +47,7 @@ function DetailRow({ label, content, onEdit }) {
             <button
               type="button"
               onClick={() => setViewOpen(true)}
-              className="text-xs font-medium text-cobalt-600 hover:underline dark:text-cobalt-400"
+              className="cursor-pointer text-xs font-medium text-cobalt-600 hover:underline dark:text-cobalt-400"
             >
               View More
             </button>
@@ -55,7 +56,7 @@ function DetailRow({ label, content, onEdit }) {
             type="button"
             onClick={onEdit}
             aria-label={`Edit ${label}`}
-            className="text-muted-foreground hover:text-foreground rounded p-1 transition-colors"
+            className="text-muted-foreground hover:text-foreground cursor-pointer rounded p-1 transition-colors"
           >
             <Pencil className="size-3.5" />
           </button>
@@ -120,18 +121,21 @@ function IssueTypeRow({ issue, projectId, onIssueUpdated }) {
         <span className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
           Issue Type
         </span>
-        <select
-          value={value}
-          onChange={(e) => handleChange(e.target.value)}
-          disabled={saving}
-          aria-label="Issue type"
-          className="bg-background text-foreground border-input focus:border-ring focus:ring-ring/10 h-7 w-36 rounded-md border px-2 text-xs shadow-xs transition-colors outline-none"
-        >
-          <option value="">Select…</option>
-          <option value="usability">Usability</option>
-          <option value="safety">Safety</option>
-          <option value="both">Both</option>
-        </select>
+        <span className="flex items-center gap-2">
+          {saving && <Spinner className="size-3 text-muted-foreground" />}
+          <select
+            value={value}
+            onChange={(e) => handleChange(e.target.value)}
+            disabled={saving}
+            aria-label="Issue type"
+            className="bg-background text-foreground border-input focus:border-ring focus:ring-ring/10 h-7 w-36 cursor-pointer rounded-md border px-2 text-xs shadow-xs transition-colors outline-none"
+          >
+            <option value="">Select…</option>
+            <option value="usability">Usability</option>
+            <option value="safety">Safety</option>
+            <option value="both">Both</option>
+          </select>
+        </span>
       </div>
       {error && <p className="text-destructive mt-1 text-xs">{error}</p>}
     </div>

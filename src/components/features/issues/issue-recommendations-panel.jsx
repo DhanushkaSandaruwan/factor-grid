@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 
 /**
@@ -42,7 +43,14 @@ function RecommendationForm({ initialText, submitLabel, onSubmit, onClose, submi
           Cancel
         </Button>
         <Button type="submit" size="sm" disabled={submitting}>
-          {submitting ? 'Saving…' : submitLabel}
+          {submitting ? (
+            <>
+              <Spinner className="size-3" />
+              Saving…
+            </>
+          ) : (
+            submitLabel
+          )}
         </Button>
       </DialogFooter>
     </form>
@@ -135,7 +143,7 @@ export function IssueRecommendationsPanel({
           }}
           aria-label="Add recommendation"
           title="Add recommendation"
-          className="text-muted-foreground hover:bg-muted hover:text-foreground flex size-6 items-center justify-center rounded transition-colors"
+          className="text-muted-foreground hover:bg-muted hover:text-foreground flex size-6 cursor-pointer items-center justify-center rounded transition-colors"
         >
           <Plus className="size-3.5" />
         </button>
@@ -163,7 +171,7 @@ export function IssueRecommendationsPanel({
                   }
                 }}
                 aria-pressed={selected}
-                className={`rounded-lg border p-2.5 transition-colors ${
+                className={`cursor-pointer rounded-lg border p-2.5 transition-colors ${
                   selected
                     ? 'border-primary/60 bg-primary/10'
                     : 'border-border bg-muted/30 hover:border-border hover:bg-muted/60'
@@ -189,7 +197,7 @@ export function IssueRecommendationsPanel({
                         setDialogOpen(true);
                       }}
                       aria-label={`Edit recommendation ${index + 1}`}
-                      className="text-muted-foreground hover:text-foreground rounded p-1 transition-colors"
+                      className="text-muted-foreground hover:text-foreground cursor-pointer rounded p-1 transition-colors"
                     >
                       <Pencil className="size-3" />
                     </button>
@@ -200,7 +208,7 @@ export function IssueRecommendationsPanel({
                         setDeleting(rec);
                       }}
                       aria-label={`Delete recommendation ${index + 1}`}
-                      className="text-muted-foreground hover:text-destructive rounded p-1 transition-colors"
+                      className="text-muted-foreground hover:text-destructive cursor-pointer rounded p-1 transition-colors"
                     >
                       <Trash2 className="size-3" />
                     </button>

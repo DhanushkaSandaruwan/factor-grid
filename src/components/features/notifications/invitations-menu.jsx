@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Bell, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Spinner } from '@/components/ui/spinner';
 
 /**
  * Top-bar notifications — pending project invitations with accept and
@@ -71,8 +72,15 @@ export function InvitationsMenu() {
         </div>
         <div className="max-h-80 overflow-y-auto p-2">
           {invitations.length === 0 ? (
-            <p className="text-muted-foreground px-2 py-6 text-center text-sm">
-              {loaded ? 'No pending invitations.' : 'Loading…'}
+            <p className="text-muted-foreground flex items-center justify-center gap-2 px-2 py-6 text-center text-sm">
+              {loaded ? (
+                'No pending invitations.'
+              ) : (
+                <>
+                  <Spinner className="size-3.5" />
+                  Loading…
+                </>
+              )}
             </p>
           ) : (
             invitations.map((invitation) => (
@@ -106,7 +114,11 @@ export function InvitationsMenu() {
                     disabled={respondingId === invitation._id}
                     onClick={() => respond(invitation._id, 'accept')}
                   >
-                    <Check data-icon="inline-start" />
+                    {respondingId === invitation._id ? (
+                      <Spinner className="size-3" />
+                    ) : (
+                      <Check data-icon="inline-start" />
+                    )}
                     Accept
                   </Button>
                   <Button

@@ -145,7 +145,7 @@ export function RequirementLinksDialog({
                 type="button"
                 onClick={() => switchTab(value)}
                 className={cn(
-                  'rounded-md px-3 py-1 text-xs font-semibold transition-colors',
+                  'cursor-pointer rounded-md px-3 py-1 text-xs font-semibold transition-colors',
                   tab === value
                     ? 'bg-card text-foreground shadow-sm'
                     : 'text-muted-foreground hover:text-foreground'

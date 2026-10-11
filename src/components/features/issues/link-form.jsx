@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from 'cn';
 
@@ -17,7 +18,7 @@ function Chip({ selected, onClick, children }) {
       type="button"
       onClick={onClick}
       className={cn(
-        'rounded-full px-2.5 py-1 text-xs font-medium ring-1 transition-colors',
+        'cursor-pointer rounded-full px-2.5 py-1 text-xs font-medium ring-1 transition-colors',
         selected
           ? 'bg-primary/10 text-primary ring-primary/40'
           : 'text-muted-foreground ring-border hover:bg-accent hover:text-foreground'
@@ -153,7 +154,16 @@ export function LinkForm({ type, initial, projectPackages, projectIssues, saving
           Cancel
         </Button>
         <Button type="submit" size="sm" disabled={saving}>
-          {saving ? 'Saving…' : initial ? 'Save Changes' : 'Add Link'}
+          {saving ? (
+            <>
+              <Spinner className="size-3" />
+              Saving…
+            </>
+          ) : initial ? (
+            'Save Changes'
+          ) : (
+            'Add Link'
+          )}
         </Button>
       </div>
     </form>

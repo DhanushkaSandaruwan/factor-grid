@@ -4,6 +4,7 @@ import { BadgeCheck, Boxes, FileText, ShieldCheck, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Spinner } from '@/components/ui/spinner';
 
 function Section({ icon: Icon, title, children }) {
   return (
@@ -137,13 +138,16 @@ export function ProjectPreview({
             </span>
           </label>
           <Button className="w-full" disabled={!confirmed || submitting} onClick={onCreate}>
-            {submitting
-              ? isEdit
-                ? 'Saving changes…'
-                : 'Creating project…'
-              : isEdit
-                ? 'Save Changes'
-                : 'Create Project'}
+            {submitting ? (
+              <>
+                <Spinner className="size-3.5" />
+                {isEdit ? 'Saving changes…' : 'Creating project…'}
+              </>
+            ) : isEdit ? (
+              'Save Changes'
+            ) : (
+              'Create Project'
+            )}
           </Button>
           {createError ? <p className="text-destructive text-xs">{createError}</p> : null}
         </div>

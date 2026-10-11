@@ -82,7 +82,7 @@ function IssueRow({ issue, isSelected, onSelectIssue }) {
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
-          className="text-muted-foreground hover:text-foreground mt-1 shrink-0 rounded p-0.5 transition-colors"
+          className="text-muted-foreground hover:text-foreground mt-1 shrink-0 cursor-pointer rounded p-0.5 transition-colors"
           aria-label={expanded ? 'Collapse details' : 'Expand details'}
         >
           {expanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}

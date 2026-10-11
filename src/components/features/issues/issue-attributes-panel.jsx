@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Minus, Plus } from 'lucide-react';
+import { Spinner } from '@/components/ui/spinner';
 
 /**
  * A single risk attribute chip: name with a [-] value [+] stepper.
@@ -18,7 +19,7 @@ function AttributeChip({ name, value, onChange }) {
         onClick={() => step(-1)}
         disabled={value <= 0}
         aria-label={`Decrease ${name}`}
-        className="text-muted-foreground hover:bg-muted flex size-5 items-center justify-center rounded transition-colors disabled:opacity-30"
+        className="text-muted-foreground hover:bg-muted flex size-5 cursor-pointer items-center justify-center rounded transition-colors disabled:opacity-30"
       >
         <Minus className="size-3" />
       </button>
@@ -29,7 +30,7 @@ function AttributeChip({ name, value, onChange }) {
         type="button"
         onClick={() => step(1)}
         aria-label={`Increase ${name}`}
-        className="text-muted-foreground hover:bg-muted flex size-5 items-center justify-center rounded transition-colors"
+        className="text-muted-foreground hover:bg-muted flex size-5 cursor-pointer items-center justify-center rounded transition-colors"
       >
         <Plus className="size-3" />
       </button>
@@ -193,7 +194,10 @@ export function IssueAttributesPanel({
         {error ? (
           <p className="text-destructive text-xs">{error}</p>
         ) : saving ? (
-          <p className="text-muted-foreground text-xs">Saving…</p>
+          <span className="text-muted-foreground flex items-center gap-1.5 text-xs">
+            <Spinner className="size-3" />
+            Saving…
+          </span>
         ) : null}
       </div>
     </div>

@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 import { RequirementRow, REQUIREMENT_GRID } from './requirement-row';
 import { cn } from 'cn';
@@ -119,7 +120,16 @@ function RequirementDialog({ open, onOpenChange, mode, recommendations, initial,
               Cancel
             </Button>
             <Button type="submit" disabled={saving}>
-              {saving ? 'Saving…' : mode === 'add' ? 'Add' : 'Save Changes'}
+              {saving ? (
+                <>
+                  <Spinner className="size-3" />
+                  Saving…
+                </>
+              ) : mode === 'add' ? (
+                'Add'
+              ) : (
+                'Save Changes'
+              )}
             </Button>
           </DialogFooter>
         </form>

@@ -5,6 +5,7 @@ import { Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { OptionChip } from '@/components/features/projects/option-chip';
@@ -223,13 +224,16 @@ export function AddIssueDialog({
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading
-                ? isEdit
-                  ? 'Saving…'
-                  : 'Creating…'
-                : isEdit
-                  ? 'Save Changes'
-                  : 'Create Issue'}
+              {loading ? (
+                <>
+                  <Spinner className="size-3.5" />
+                  {isEdit ? 'Saving…' : 'Creating…'}
+                </>
+              ) : isEdit ? (
+                'Save Changes'
+              ) : (
+                'Create Issue'
+              )}
             </Button>
           </div>
         </form>

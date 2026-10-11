@@ -19,7 +19,7 @@ const TYPE_OPTIONS = [
 ];
 
 const selectClass =
-  'bg-background text-foreground border-input focus:border-ring focus:ring-ring/10 h-8 rounded-md border px-2 pr-7 text-xs shadow-xs transition-colors outline-none';
+  'bg-background text-foreground border-input focus:border-ring focus:ring-ring/10 h-8 cursor-pointer rounded-md border px-2 pr-7 text-xs shadow-xs transition-colors outline-none';
 
 /**
  * One inline stat: muted label + prominent count.

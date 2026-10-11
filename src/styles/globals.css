@@ -129,4 +129,44 @@
   html {
     @apply font-sans;
     }
+  /* Every clickable element shows a hand (pointer) cursor. */
+  button:not(:disabled),
+  a[href],
+  label,
+  summary,
+  select:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  [role='link'],
+  [role='menuitem'],
+  [role='menuitemcheckbox'],
+  [role='menuitemradio'],
+  [role='option'],
+  [role='tab'],
+  [role='switch'],
+  [role='checkbox'],
+  [role='radio'],
+  [role='combobox'],
+  [role='slider'],
+  [role='spinbutton'],
+  [data-slot='checkbox'],
+  [data-slot='switch'],
+  [data-slot='dialog-trigger'],
+  [data-slot='dialog-close'],
+  [data-slot='popover-trigger'],
+  input[type='checkbox'],
+  input[type='radio'],
+  input[type='file'],
+  input[type='submit'],
+  input[type='reset'],
+  input[type='button'],
+  input[type='color'],
+  input[type='range'] {
+    cursor: pointer;
+  }
+  /* Disabled controls are not clickable — show the not-allowed cursor. */
+  button:disabled,
+  select:disabled,
+  [role='button'][aria-disabled='true'] {
+    cursor: not-allowed;
+  }
 }

@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 
 const FIELDS = [
   { id: 'firstName', label: 'First name', placeholder: 'e.g. Amanda', type: 'text', autoComplete: 'given-name' },
@@ -122,7 +123,14 @@ export function OnboardingForm({ initialData }) {
         </CardContent>
         <CardFooter className="mt-2 justify-end">
           <Button type="submit" disabled={submitting}>
-            {submitting ? 'Saving…' : 'Complete onboarding'}
+            {submitting ? (
+              <>
+                <Spinner className="size-3.5" />
+                Saving…
+              </>
+            ) : (
+              'Complete onboarding'
+            )}
           </Button>
         </CardFooter>
       </form>

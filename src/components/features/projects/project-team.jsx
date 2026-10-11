@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 import { OptionChip } from './option-chip';
 
@@ -271,8 +272,17 @@ export function ProjectTeam({ projectId, team, canManage }) {
                       Cancel
                     </Button>
                     <Button type="submit" disabled={submitting}>
-                      <Mail data-icon="inline-start" />
-                      {submitting ? 'Sending…' : 'Send invitation'}
+                      {submitting ? (
+                        <>
+                          <Spinner className="size-3.5" />
+                          Sending…
+                        </>
+                      ) : (
+                        <>
+                          <Mail data-icon="inline-start" />
+                          Send invitation
+                        </>
+                      )}
                     </Button>
                   </DialogFooter>
                 </form>

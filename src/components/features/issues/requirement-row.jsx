@@ -75,7 +75,7 @@ export function RequirementRow({
           type="button"
           onClick={onEdit}
           title={requirement.text}
-          className="text-foreground min-w-0 flex-1 truncate text-left text-xs"
+          className="text-foreground min-w-0 flex-1 cursor-pointer truncate text-left text-xs"
         >
           {requirement.text}
         </button>

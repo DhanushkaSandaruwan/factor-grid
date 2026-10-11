@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 
 /**
@@ -73,7 +74,14 @@ export function WizardStepPackages({ packages, selectedIds, errors, creating, on
         </div>
         <div className="flex justify-end">
           <Button type="submit" size="sm" disabled={creating || !packageId.trim()}>
-            {creating ? 'Saving…' : 'Add package'}
+            {creating ? (
+              <>
+                <Spinner className="size-3" />
+                Saving…
+              </>
+            ) : (
+              'Add package'
+            )}
           </Button>
         </div>
       </form>

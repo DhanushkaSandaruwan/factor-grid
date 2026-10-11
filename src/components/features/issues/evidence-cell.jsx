@@ -145,7 +145,7 @@ export function EvidenceCell({ projectId, issueId, recommendationId, requirement
               target="_blank"
               rel="noopener noreferrer"
               title={`Download — ${item.filename}`}
-              className="text-muted-foreground hover:text-primary hover:bg-accent rounded p-1 transition-colors"
+              className="text-muted-foreground hover:text-primary hover:bg-accent cursor-pointer rounded p-1 transition-colors"
             >
               <Icon className="size-4" />
             </a>
@@ -154,7 +154,7 @@ export function EvidenceCell({ projectId, issueId, recommendationId, requirement
               aria-label={`Delete ${item.filename}`}
               title={`Delete ${item.filename}`}
               onClick={() => handleDelete(item.fileId)}
-              className="bg-destructive text-destructive-foreground absolute -top-1.5 -right-1.5 hidden size-3.5 items-center justify-center rounded-full group-hover/evidence:flex"
+              className="bg-destructive text-destructive-foreground absolute -top-1.5 -right-1.5 hidden size-3.5 cursor-pointer items-center justify-center rounded-full group-hover/evidence:flex"
             >
               <X className="size-2.5" />
             </button>
@@ -180,7 +180,7 @@ export function EvidenceCell({ projectId, issueId, recommendationId, requirement
         aria-label="Upload evidence"
         title="Upload evidence files"
         onClick={() => inputRef.current?.click()}
-        className="text-muted-foreground hover:text-primary hover:bg-accent rounded p-1 transition-colors"
+        className="text-muted-foreground hover:text-primary hover:bg-accent cursor-pointer rounded p-1 transition-colors"
       >
         <Plus className="size-4" />
       </button>
