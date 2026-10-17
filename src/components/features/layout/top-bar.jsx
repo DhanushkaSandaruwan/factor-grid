@@ -1,11 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { FolderPlus, Search } from 'lucide-react';
+import { FolderPlus, Settings } from 'lucide-react';
 import { UserButton } from '@clerk/nextjs';
-import { Input } from '@/components/ui/input';
 import { buttonVariants } from '@/components/ui/button';
 import { InvitationsMenu } from '@/components/features/notifications/invitations-menu';
+import { SearchBox } from '@/components/features/search/search-box';
 
 /**
  * Global top bar for authenticated app pages (excludes auth and onboarding).
@@ -27,16 +27,8 @@ export function TopBar({ companyName }) {
         </span>
       </Link>
 
-      <div className="mx-auto hidden w-full max-w-md md:block">
-        <div className="relative">
-          <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
-          <Input
-            type="search"
-            placeholder="Search…"
-            aria-label="Search"
-            className="pl-8"
-          />
-        </div>
+      <div className="mx-auto hidden md:block">
+        <SearchBox />
       </div>
 
       <div className="ml-auto flex items-center gap-2 md:ml-0">
@@ -46,6 +38,13 @@ export function TopBar({ companyName }) {
         >
           <FolderPlus data-icon="inline-start" />
           New Project
+        </Link>
+        <Link
+          href="/settings"
+          aria-label="AI Settings"
+          className={buttonVariants({ variant: 'ghost', size: 'icon-sm' })}
+        >
+          <Settings />
         </Link>
         <InvitationsMenu />
         <UserButton />

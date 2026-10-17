@@ -3,6 +3,9 @@ import { z } from 'zod';
 import { connectToDatabase } from '@/lib/db';
 import { Project } from '@/models/project';
 import { ProjectMembership } from '@/models/project-membership';
+import { Issue } from '@/models/issue';
+import { Link } from '@/models/link';
+import { MediaFile } from '@/models/media-file';
 import { validateAttributeSelections } from './attribute-option-service';
 import { getPackagesByIds } from './package-service';
 import { collectFieldErrors } from './validation-utils';
@@ -225,7 +228,48 @@ export async function updateProject(clerkUserId, projectId, payload) {
     { new: true }
   )
     .populate('packages', 'packageId description')
-    .lean();
+      .lean();
 
   return { ok: true, project: updated };
+}
+
+/**
+ * Delete a project and all of its issues, links, and media files.
+ * Only the owner may delete.
+ * @param {string} clerkUserId
+ * @param {string} projectId
+ * @returns {Promise<{ok: true} | {ok: false, code: string}>}
+ */
+export async function deleteProject(clerkUserId, projectId) {
+    if (!mongoose.isValidObjectId(projectId)) {
+      return { ok: false, code: 'not_found' };
+    }
+
+    await connectToDatabase();
+    const project = await Project.findById(projectId).lean();
+    if (!project) {
+      return { ok: false, code: 'not_found' };
+    }
+    if (project.createdBy !== clerkUserId) {
+      return { ok: false, code: 'forbidden' };
+    }
+
+    const projectObjectId = new mongoose.Types.ObjectId(projectId);
+
+    // Delete all issues and their recommendations/requirements.
+    await Issue.deleteMany({ project: projectObjectId });
+
+    // Delete all links (they reference issues, so do this after issues).
+    await Link.deleteMany({ project: projectObjectId });
+
+    // Delete all project-scoped media files.
+    await MediaFile.deleteMany({ project: projectObjectId });
+
+    // Delete all memberships.
+    await ProjectMembership.deleteMany({ project: projectObjectId });
+
+    // Finally, delete the project itself.
+    await Project.findByIdAndDelete(projectObjectId);
+
+    return { ok: true };
 }

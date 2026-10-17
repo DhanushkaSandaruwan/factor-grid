@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { getProjectById } from '@/lib/services/project-service';
-import { updateIssue, updateIssueAttributeValues, updateIssueType } from '@/lib/services/issue-service';
+import { updateIssue, updateIssueAttributeValues, updateIssueType, deleteIssue } from '@/lib/services/issue-service';
 
 /**
  * PATCH /api/projects/[id]/issues/[issueId]
@@ -93,4 +93,31 @@ export async function PATCH(request, { params }) {
   }
 
   return NextResponse.json({ issue });
+}
+
+/** DELETE /api/projects/[id]/issues/[issueId] — permanently delete an issue. */
+export async function DELETE(_request, { params }) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const { id, issueId } = await params;
+
+  try {
+    const result = await deleteIssue(userId, id, issueId);
+    if (!result.ok) {
+      if (result.code === 'not_found') {
+        return NextResponse.json({ error: 'Issue not found' }, { status: 404 });
+      }
+      if (result.code === 'forbidden') {
+        return NextResponse.json(
+          { error: 'You do not have permission to delete this issue.' },
+          { status: 403 }
+        );
+      }
+    }
+    return NextResponse.json({ ok: true }, { status: 200 });
+  } catch (error) {
+    console.error('[api/issues] failed to delete issue:', error);
+    return NextResponse.json({ error: 'Failed to delete issue' }, { status: 500 });
+  }
 }

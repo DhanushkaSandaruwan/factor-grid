@@ -2,6 +2,8 @@ import mongoose from 'mongoose';
 import { z } from 'zod';
 import { connectToDatabase } from '@/lib/db';
 import { Issue } from '@/models/issue';
+import { Project } from '@/models/project';
+import { ProjectMembership } from '@/models/project-membership';
 import { collectFieldErrors } from './validation-utils';
 
 /* -----------------------------------------------------------------------
@@ -404,6 +406,48 @@ export async function getIssueById(issueId, projectId) {
     .lean();
 
   return issue ? toSerializable(issue) : null;
+}
+
+/**
+ * Delete a single issue from a project. Only the project owner or an active
+ * editor may delete.
+ * @param {string} clerkUserId
+ * @param {string} projectId
+ * @param {string} issueId
+ * @returns {Promise<{ok: true} | {ok: false, code: string}>}
+ */
+export async function deleteIssue(clerkUserId, projectId, issueId) {
+  if (!mongoose.isValidObjectId(issueId) || !mongoose.isValidObjectId(projectId)) {
+    return { ok: false, code: 'not_found' };
+  }
+
+  await connectToDatabase();
+  const project = await Project.findById(projectId).lean();
+  if (!project) {
+    return { ok: false, code: 'not_found' };
+  }
+
+  const canEdit =
+    project.createdBy === clerkUserId ||
+    (await ProjectMembership.exists({
+      project: project._id,
+      user: clerkUserId,
+      status: 'active',
+      role: 'editor',
+    }));
+  if (!canEdit) {
+    return { ok: false, code: 'forbidden' };
+  }
+
+  const result = await Issue.findOneAndDelete({
+    _id: new mongoose.Types.ObjectId(issueId),
+    project: new mongoose.Types.ObjectId(projectId),
+  });
+  if (!result) {
+    return { ok: false, code: 'not_found' };
+  }
+
+  return { ok: true };
 }
 
 /**

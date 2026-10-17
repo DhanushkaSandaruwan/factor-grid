@@ -143,6 +143,33 @@ app origin:
 ]
 ```
 
+## AI Companion
+
+Every authenticated page shows a floating AI button (bottom-right) that opens a
+chat panel streamed from an OpenAI-compatible provider (Groq by default).
+
+- **Chat** — `POST /api/ai/chat` accepts `{ messages: [{ role, content }] }`
+  and streams Server-Sent Events (`token` / `done` / `error`).
+- **Service** — `src/lib/services/ai-service.js` holds provider calls and key
+  rotation; the route stays thin.
+- **Settings** — `src/models/ai-settings.js` stores the base URL, model, system
+  prompt, temperature and token cap. `src/models/ai-api-key.js` stores provider
+  keys **encrypted at rest** (`src/lib/crypto.js`, AES-256-GCM).
+- **Key rotation** — keys are tried least-recently-used first; a `429` or `402`
+  marks the key rate-limited (honoring `Retry-After`) and the next key is used
+  automatically. Expired limit windows reinstate the key on the next request.
+
+Environment variables:
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `GROQ_API_KEYS` | yes* | Comma-separated bootstrap keys, used only while the database has no keys yet |
+| `AI_ENCRYPTION_KEY` | prod | 64-char hex (32 bytes) key for encrypting stored API keys |
+
+\* Until the planned AI settings page manages keys in the database, set
+`GROQ_API_KEYS` (comma-separated for multiple keys). In production,
+`AI_ENCRYPTION_KEY` must be set before any keys are stored.
+
 ## Development
 
 ```bash
@@ -153,4 +180,5 @@ npm run check   # lint + production build
 
 Requires a `.env.local` with `MONGODB_URI` and Clerk keys (see
 `.env.local.example`). Media storage additionally needs the Cloudflare R2
-settings listed in `.env.local.example`.
+settings listed in `.env.local.example`. The AI companion needs `GROQ_API_KEYS`
+(see above).
