@@ -141,8 +141,8 @@ export function ApiKeysSection() {
                     <span
                       className={`inline-flex h-5 items-center rounded-md px-1.5 text-xs font-medium ${
                         k.status === 'active'
-                          ? 'bg-green-500/10 text-green-600 dark:text-green-400'
-                          : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                          ? 'bg-status-closed-soft text-status-closed'
+                          : 'bg-status-open-soft text-status-open'
                       }`}
                     >
                       {k.status}

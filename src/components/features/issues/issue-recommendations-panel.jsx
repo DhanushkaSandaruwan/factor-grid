@@ -126,12 +126,10 @@ export function IssueRecommendationsPanel({
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
+      <div className="border-border/70 flex items-center justify-between gap-2 border-b px-3 py-2">
         <div className="flex items-baseline gap-2">
-          <span className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-            Recommendations
-          </span>
-          <span className="text-muted-foreground text-[0.65rem]">
+          <span className="eyebrow">Recommendations</span>
+          <span className="text-muted-foreground font-mono text-[0.65rem] tabular-nums">
             {recommendations.length}
           </span>
         </div>
@@ -143,14 +141,14 @@ export function IssueRecommendationsPanel({
           }}
           aria-label="Add recommendation"
           title="Add recommendation"
-          className="text-muted-foreground hover:bg-muted hover:text-foreground flex size-6 cursor-pointer items-center justify-center rounded transition-colors"
+          className="text-muted-foreground hover:bg-muted hover:text-foreground focus-ring flex size-6 cursor-pointer items-center justify-center rounded-md transition-colors"
         >
           <Plus className="size-3.5" />
         </button>
       </div>
 
       {/* Scrollable list */}
-      <div className="scrollbar-refined min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
+      <div className="scrollbar-refined min-h-0 flex-1 space-y-1.5 overflow-y-auto p-2.5">
         {recommendations.length === 0 ? (
           <p className="text-muted-foreground px-1 py-6 text-center text-xs">
             No recommendations yet. Use the + button to add one.
@@ -171,10 +169,10 @@ export function IssueRecommendationsPanel({
                   }
                 }}
                 aria-pressed={selected}
-                className={`cursor-pointer rounded-lg border p-2.5 transition-colors ${
+                className={`focus-ring cursor-pointer rounded-lg border p-2.5 transition-[background-color,border-color,box-shadow] duration-150 ${
                   selected
-                    ? 'border-primary/60 bg-primary/10'
-                    : 'border-border bg-muted/30 hover:border-border hover:bg-muted/60'
+                    ? 'border-primary/50 bg-primary/10 shadow-soft'
+                    : 'border-border/80 bg-card hover:border-primary/30 hover:bg-muted/50'
                 }`}
               >
                 <div className="flex items-start justify-between gap-2">

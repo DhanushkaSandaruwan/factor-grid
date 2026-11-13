@@ -82,13 +82,12 @@ export function EvidenceCell({ projectId, issueId, recommendationId, requirement
 
     setError('');
     for (const file of files) {
-      const entry = { name: file.name, progress: 0 };
+      // Keyed by a unique id so two files with the same name don't collide.
+      const entry = { id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, name: file.name, progress: 0 };
       setUploads((prev) => [...prev, entry]);
       try {
         const { file: uploaded } = await uploadFileWithProgress(file, projectId, (progress) => {
-          setUploads((prev) =>
-            prev.map((u) => (u.name === entry.name ? { ...u, progress } : u))
-          );
+          setUploads((prev) => prev.map((u) => (u.id === entry.id ? { ...u, progress } : u)));
         });
 
         const response = await fetch(
@@ -112,7 +111,7 @@ export function EvidenceCell({ projectId, issueId, recommendationId, requirement
         console.error('Evidence upload failed:', err);
         setError('Upload failed.');
       } finally {
-        setUploads((prev) => prev.filter((u) => u.name !== entry.name));
+        setUploads((prev) => prev.filter((u) => u.id !== entry.id));
       }
     }
   }
@@ -154,7 +153,7 @@ export function EvidenceCell({ projectId, issueId, recommendationId, requirement
               aria-label={`Delete ${item.filename}`}
               title={`Delete ${item.filename}`}
               onClick={() => handleDelete(item.fileId)}
-              className="bg-destructive text-destructive-foreground absolute -top-1.5 -right-1.5 hidden size-3.5 cursor-pointer items-center justify-center rounded-full group-hover/evidence:flex"
+              className="bg-destructive text-destructive-foreground absolute -top-1.5 -right-1.5 flex size-3.5 cursor-pointer items-center justify-center rounded-full opacity-80 transition-opacity hover:opacity-100 md:opacity-0 md:group-hover/evidence:opacity-100 md:focus-visible:opacity-100"
             >
               <X className="size-2.5" />
             </button>
@@ -164,7 +163,7 @@ export function EvidenceCell({ projectId, issueId, recommendationId, requirement
 
       {uploads.map((upload) => (
         <span
-          key={upload.name}
+          key={upload.id}
           title={`Uploading ${upload.name} — ${upload.progress}%`}
           className="bg-muted relative inline-flex items-center gap-1 rounded px-1.5 py-1"
         >

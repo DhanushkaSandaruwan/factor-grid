@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Check, Mail, UserPlus } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -35,33 +36,24 @@ const EMPTY_FORM = {
 };
 
 function RoleBadge({ role }) {
-  return (
-    <span className="bg-accent text-accent-foreground inline-flex h-5 items-center rounded-md px-1.5 text-[0.7rem] font-medium capitalize">
-      {role}
-    </span>
-  );
+  return <Badge tone="accent" className="capitalize">{role}</Badge>;
 }
 
 function StatusBadge({ status }) {
-  return (
-    <span
-      className={`inline-flex h-5 items-center rounded-md px-1.5 text-[0.7rem] font-medium ${
-        status === 'active'
-          ? 'bg-primary/10 text-primary'
-          : 'bg-muted text-muted-foreground'
-      }`}
-    >
-      {status === 'active' ? 'Active' : 'Invited'}
-    </span>
-  );
+  return <Badge tone={status === 'active' ? 'primary' : 'neutral'}>{status === 'active' ? 'Active' : 'Invited'}</Badge>;
 }
 
 function MemberRow({ name, email, badges }) {
   return (
-    <li className="flex items-center justify-between gap-3 border-b py-2.5 last:border-b-0 last:pb-0">
-      <div className="min-w-0 space-y-0.5">
-        <p className="truncate text-sm font-medium">{name}</p>
-        <p className="text-muted-foreground truncate text-xs">{email}</p>
+    <li className="flex items-center justify-between gap-3 border-b border-border/60 py-2.5 last:border-b-0 last:pb-0">
+      <div className="flex min-w-0 items-center gap-2.5">
+        <span className="bg-accent text-accent-foreground flex size-7 shrink-0 items-center justify-center rounded-full text-[0.65rem] font-semibold uppercase">
+          {name.trim().charAt(0) || '?'}
+        </span>
+        <div className="min-w-0 space-y-0.5">
+          <p className="truncate text-sm font-medium">{name}</p>
+          <p className="text-muted-foreground truncate text-xs">{email}</p>
+        </div>
       </div>
       <div className="flex shrink-0 items-center gap-1.5">{badges}</div>
     </li>

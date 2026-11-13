@@ -3,6 +3,7 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { Pencil } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Select } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { AddIssueDialog } from './add-issue-dialog';
 
@@ -38,32 +39,30 @@ function DetailRow({ label, content, onEdit }) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
-        <span className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-          {label}
-        </span>
+      <div className="border-border/70 flex items-center justify-between gap-2 border-b px-4 py-2">
+        <span className="eyebrow">{label}</span>
         <div className="flex items-center gap-1">
           {overflows && hasContent && (
             <button
               type="button"
               onClick={() => setViewOpen(true)}
-              className="cursor-pointer text-xs font-medium text-cobalt-600 hover:underline dark:text-cobalt-400"
+              className="text-primary hover:text-primary/80 focus-ring cursor-pointer rounded text-xs font-medium"
             >
-              View More
+              View more
             </button>
           )}
           <button
             type="button"
             onClick={onEdit}
             aria-label={`Edit ${label}`}
-            className="text-muted-foreground hover:text-foreground cursor-pointer rounded p-1 transition-colors"
+            className="text-muted-foreground hover:bg-muted hover:text-foreground focus-ring cursor-pointer rounded-md p-1 transition-colors"
           >
             <Pencil className="size-3.5" />
           </button>
         </div>
       </div>
 
-      <div ref={ref} className="min-h-0 flex-1 overflow-hidden px-3 py-2">
+      <div ref={ref} className="min-h-0 flex-1 overflow-hidden px-4 py-2.5">
         <p className="text-foreground/90 text-xs leading-relaxed break-words whitespace-pre-wrap">
           {hasContent ? content : '—'}
         </p>
@@ -72,9 +71,7 @@ function DetailRow({ label, content, onEdit }) {
       <Dialog open={viewOpen} onOpenChange={setViewOpen}>
         <DialogContent title={label}>
           <div className="scrollbar-refined max-h-[60vh] overflow-y-auto">
-            <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">
-              {content}
-            </p>
+            <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">{content}</p>
           </div>
         </DialogContent>
       </Dialog>
@@ -116,25 +113,24 @@ function IssueTypeRow({ issue, projectId, onIssueUpdated }) {
   }
 
   return (
-    <div className="border-b border-border px-3 py-2">
+    <div className="border-border/70 border-b px-4 py-2">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-          Issue Type
-        </span>
+        <span className="eyebrow">Issue type</span>
         <span className="flex items-center gap-2">
-          {saving && <Spinner className="size-3 text-muted-foreground" />}
-          <select
+          {saving && <Spinner className="text-muted-foreground size-3" />}
+          <Select
+            size="sm"
             value={value}
             onChange={(e) => handleChange(e.target.value)}
             disabled={saving}
             aria-label="Issue type"
-            className="bg-background text-foreground border-input focus:border-ring focus:ring-ring/10 h-7 w-36 cursor-pointer rounded-md border px-2 text-xs shadow-xs transition-colors outline-none"
+            className="w-36"
           >
             <option value="">Select…</option>
             <option value="usability">Usability</option>
             <option value="safety">Safety</option>
             <option value="both">Both</option>
-          </select>
+          </Select>
         </span>
       </div>
       {error && <p className="text-destructive mt-1 text-xs">{error}</p>}
@@ -158,9 +154,7 @@ export function IssueDetailsColumn({ issue, projectId, projectPackages, onIssueU
       <div className="flex flex-1 items-center justify-center px-6 text-center">
         <div>
           <p className="text-foreground text-sm font-medium">No issue selected</p>
-          <p className="text-muted-foreground mt-1 text-xs">
-            Select an issue from the list to view its details.
-          </p>
+          <p className="text-muted-foreground mt-1 text-xs">Select an issue from the list to view its details.</p>
         </div>
       </div>
     );
@@ -168,23 +162,10 @@ export function IssueDetailsColumn({ issue, projectId, projectPackages, onIssueU
 
   return (
     <>
-      <IssueTypeRow
-        key={issue._id}
-        issue={issue}
-        projectId={projectId}
-        onIssueUpdated={onIssueUpdated}
-      />
-      <DetailRow
-        label="Description"
-        content={issue.description}
-        onEdit={() => setEditOpen(true)}
-      />
-      <div className="border-t border-border" />
-      <DetailRow
-        label="Consequences"
-        content={issue.consequences}
-        onEdit={() => setEditOpen(true)}
-      />
+      <IssueTypeRow key={issue._id} issue={issue} projectId={projectId} onIssueUpdated={onIssueUpdated} />
+      <DetailRow label="Description" content={issue.description} onEdit={() => setEditOpen(true)} />
+      <div className="border-border/70 border-t" />
+      <DetailRow label="Consequences" content={issue.consequences} onEdit={() => setEditOpen(true)} />
       <AddIssueDialog
         projectId={projectId}
         projectPackages={projectPackages}

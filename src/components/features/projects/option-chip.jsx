@@ -1,5 +1,6 @@
 'use client';
 
+import { Check } from 'lucide-react';
 import { cn } from 'cn';
 
 /**
@@ -13,12 +14,13 @@ export function OptionChip({ label, selected, onToggle }) {
       aria-pressed={selected}
       onClick={onToggle}
       className={cn(
-        'inline-flex h-7 items-center rounded-full border px-3 text-xs font-medium transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50',
+        'focus-ring inline-flex h-7 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-[background-color,border-color,color] duration-150 outline-none',
         selected
-          ? 'border-primary bg-primary text-primary-foreground'
-          : 'border-border bg-background text-foreground hover:border-primary/50 hover:bg-accent hover:text-accent-foreground'
+          ? 'border-primary/60 bg-primary/10 text-primary hover:bg-primary/15'
+          : 'border-border bg-card text-foreground shadow-soft hover:border-primary/40 hover:bg-accent/60 hover:text-accent-foreground'
       )}
     >
+      {selected ? <Check className="size-3" aria-hidden="true" /> : null}
       {label}
     </button>
   );

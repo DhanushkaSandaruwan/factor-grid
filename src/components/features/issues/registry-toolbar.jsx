@@ -4,6 +4,8 @@ import { useMemo } from 'react';
 import { X } from 'lucide-react';
 import { BackButton } from '@/components/features/projects/back-button';
 import { Button } from '@/components/ui/button';
+import { Select } from '@/components/ui/select';
+import { InlineStat } from '@/components/ui/stat';
 
 const STATUS_OPTIONS = [
   { value: 'all', label: 'All' },
@@ -18,30 +20,20 @@ const TYPE_OPTIONS = [
   { value: 'both', label: 'Both' },
 ];
 
-const selectClass =
-  'bg-background text-foreground border-input focus:border-ring focus:ring-ring/10 h-8 cursor-pointer rounded-md border px-2 pr-7 text-xs shadow-xs transition-colors outline-none';
-
-/**
- * One inline stat: muted label + prominent count.
- */
-function Stat({ label, value }) {
+/** A labelled group of inline stats, shown as a soft segment. */
+function StatGroup({ title, children }) {
   return (
-    <span className="flex items-baseline gap-1.5 whitespace-nowrap">
-      <span className="text-muted-foreground text-xs font-semibold">{label}</span>
-      <span className="text-foreground text-sm font-semibold tabular-nums">{value}</span>
-    </span>
+    <div className="bg-muted/60 ring-foreground/[0.05] flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg px-3 py-1.5 ring-1">
+      <span className="eyebrow mr-1 text-[0.6rem]">{title}</span>
+      {children}
+    </div>
   );
 }
 
-function StatDivider() {
-  return <div className="bg-border h-5 w-px" aria-hidden="true" />;
-}
-
 /**
- * Registry toolbar: back button, centered project-wide stats (issues,
- * recommendations, requirements, evidence) and the issue list filters
- * (status, type, package) with a clear-all action. Stats always cover every
- * issue in the project; filters only affect the issue list.
+ * Registry toolbar: back button, project-wide stats (issues, recommendations,
+ * requirements, evidence) and the issue list filters with a clear-all action.
+ * Stats always cover every issue in the project; filters only affect the list.
  *
  * @param {{ projectId: string, issues: object[], projectPackages: object[], filters: { status: string, type: string, packageId: string }, onFiltersChange: (filters: object) => void }} props
  */
@@ -102,76 +94,70 @@ export function RegistryToolbar({ projectId, issues, projectPackages, filters, o
   }
 
   return (
-    <div className="bg-card border-border border-b px-6 py-3">
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+    <div className="surface-glass border-border/70 z-10 shrink-0 border-b px-5 py-2.5">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <BackButton fallbackHref={`/projects/${projectId}`} />
 
-        <StatDivider />
+        {/* Stats: issues | recommendations | requirements | evidence */}
+        <div className="flex min-w-0 flex-1 flex-wrap items-center justify-center gap-2">
+          <StatGroup title="Issues">
+            <InlineStat label="Total" value={stats.total} />
+            <InlineStat label="Open" value={stats.open} />
+            <InlineStat label="Closed" value={stats.closed} />
+          </StatGroup>
 
-        {/* Centered stats: issues | recommendations | requirements | evidence */}
-        <div className="flex flex-1 flex-wrap items-center justify-center gap-x-4 gap-y-1">
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-            <Stat label="Total Issues" value={stats.total} />
-            <Stat label="Open" value={stats.open} />
-            <Stat label="Closed" value={stats.closed} />
-          </div>
+          <StatGroup title="Recs">
+            <InlineStat label="Total" value={stats.totalRecommendations} />
+            <InlineStat label="Open" value={stats.recommendationsOpen} />
+            <InlineStat label="Closed" value={stats.recommendationsClosed} />
+          </StatGroup>
 
-          <StatDivider />
+          <StatGroup title="Requirements">
+            <InlineStat label="Total" value={stats.totalRequirements} />
+            <InlineStat label="Open" value={stats.requirementsOpen} />
+            <InlineStat label="Closed" value={stats.requirementsClosed} />
+          </StatGroup>
 
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-            <Stat label="Recommendations" value={stats.totalRecommendations} />
-            <Stat label="Rec. Open" value={stats.recommendationsOpen} />
-            <Stat label="Rec. Closed" value={stats.recommendationsClosed} />
-          </div>
-
-          <StatDivider />
-
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-            <Stat label="Requirements" value={stats.totalRequirements} />
-            <Stat label="Req. Open" value={stats.requirementsOpen} />
-            <Stat label="Req. Closed" value={stats.requirementsClosed} />
-          </div>
-
-          <StatDivider />
-
-          <Stat label="Evidence" value={stats.evidence} />
+          <StatGroup title="Evidence">
+            <InlineStat label="Files" value={stats.evidence} />
+          </StatGroup>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <select
+          <Select
+            size="sm"
             value={filters.status}
             onChange={(e) => update({ status: e.target.value })}
             aria-label="Filter by status"
             title="Filter by status"
-            className={selectClass}
           >
             {STATUS_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 Status: {option.label}
               </option>
             ))}
-          </select>
+          </Select>
 
-          <select
+          <Select
+            size="sm"
             value={filters.type}
             onChange={(e) => update({ type: e.target.value })}
             aria-label="Filter by type"
             title="Filter by type"
-            className={selectClass}
           >
             {TYPE_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 Type: {option.label}
               </option>
             ))}
-          </select>
+          </Select>
 
-          <select
+          <Select
+            size="sm"
             value={filters.packageId}
             onChange={(e) => update({ packageId: e.target.value })}
             aria-label="Filter by package"
             title="Filter by package"
-            className={selectClass}
           >
             <option value="all">Package: All</option>
             {projectPackages.map((pkg) => (
@@ -179,7 +165,7 @@ export function RegistryToolbar({ projectId, issues, projectPackages, filters, o
                 Package: {pkg.packageId}
               </option>
             ))}
-          </select>
+          </Select>
 
           {hasActiveFilters && (
             <Button

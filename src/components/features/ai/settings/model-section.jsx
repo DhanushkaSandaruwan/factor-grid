@@ -53,30 +53,33 @@ export function ModelSection({ settings, onSettingsChange }) {
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         {error && <p className="text-destructive text-xs">{error}</p>}
-        {saved && <p className="text-green-600 dark:text-green-400 text-xs">Saved.</p>}
+        {saved && <p className="text-success text-xs">Saved.</p>}
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="flex flex-col gap-1.5">
-            <label className="text-muted-foreground text-xs font-medium">Base URL</label>
+            <label htmlFor="ai-base-url" className="text-muted-foreground text-xs font-medium">Base URL</label>
             <Input
+              id="ai-base-url"
               value={baseUrl}
               onChange={(e) => setBaseUrl(e.target.value)}
               placeholder="https://api.groq.com/openai/v1"
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-muted-foreground text-xs font-medium">Model</label>
+            <label htmlFor="ai-model" className="text-muted-foreground text-xs font-medium">Model</label>
             <Input
+              id="ai-model"
               value={model}
               onChange={(e) => setModel(e.target.value)}
               placeholder="openai/gpt-oss-120b"
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-muted-foreground text-xs font-medium">
+            <label htmlFor="ai-temperature" className="text-muted-foreground text-xs font-medium">
               Temperature — {temperature.toFixed(1)}
             </label>
             <input
+              id="ai-temperature"
               type="range"
               min="0"
               max="2"
@@ -87,8 +90,9 @@ export function ModelSection({ settings, onSettingsChange }) {
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="text-muted-foreground text-xs font-medium">Max Tokens</label>
+            <label htmlFor="ai-max-tokens" className="text-muted-foreground text-xs font-medium">Max Tokens</label>
             <Input
+              id="ai-max-tokens"
               type="number"
               min="1"
               max="8192"

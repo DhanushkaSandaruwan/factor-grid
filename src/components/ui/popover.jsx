@@ -20,7 +20,7 @@ function PopoverContent({ className, align = 'center', sideOffset = 6, ...props 
         align={align}
         sideOffset={sideOffset}
         className={cn(
-          'bg-card z-50 w-72 rounded-xl p-4 text-card-foreground shadow-enterprise ring-1 ring-foreground/10 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
+          'surface-glass z-50 w-72 rounded-xl p-4 text-card-foreground shadow-enterprise-lg ring-1 ring-foreground/[0.08] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
           className
         )}
         {...props}

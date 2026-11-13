@@ -21,7 +21,7 @@ export default async function AppLayout({ children }) {
   }
 
   return (
-    <div className="bg-background flex h-svh flex-col overflow-hidden">
+    <div className="app-canvas flex h-svh flex-col overflow-hidden">
       <TopBar companyName={profile.companyName} />
       <main className="flex min-h-0 flex-1 flex-col">{children}</main>
       <AiAssistant />

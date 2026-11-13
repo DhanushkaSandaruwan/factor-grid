@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Select } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 import { RequirementRow, REQUIREMENT_GRID } from './requirement-row';
@@ -88,18 +89,18 @@ function RequirementDialog({ open, onOpenChange, mode, recommendations, initial,
               <Label htmlFor="requirement-recommendation" className="text-sm">
                 Recommendation
               </Label>
-              <select
+              <Select
                 id="requirement-recommendation"
                 value={recommendationId}
                 onChange={(e) => setRecommendationId(e.target.value)}
-                className="bg-background border-input text-foreground h-9 w-full rounded-md border px-3 text-sm shadow-xs"
+                className="h-9 w-full text-sm"
               >
                 {recommendations.map((rec, index) => (
                   <option key={rec._id} value={rec._id}>
                     {String(index + 1).padStart(2, '0')} — {rec.text.slice(0, 60)}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
           )}
           <div className="space-y-1.5">
@@ -201,10 +202,12 @@ export function IssueRequirementsPanel({
   return (
     <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
       {/* Header */}
-      <div className="border-border bg-card flex items-center justify-between border-b px-4 py-3">
+      <div className="border-border/70 bg-card flex items-center justify-between border-b px-4 py-2.5">
         <div>
-          <p className="text-foreground text-sm font-semibold">Requirements</p>
-          <p className="text-muted-foreground text-xs">{rows.length} registered</p>
+          <p className="eyebrow">Requirements</p>
+          <p className="text-muted-foreground mt-0.5 text-xs">
+            <span className="text-foreground font-mono font-semibold tabular-nums">{rows.length}</span> registered
+          </p>
         </div>
         <Button
           size="sm"

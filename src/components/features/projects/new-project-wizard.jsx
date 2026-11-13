@@ -82,7 +82,8 @@ export function NewProjectWizard({
   };
 
   const goTo = (target) => {
-    const stepErrors = validateStep(step);
+    // Only gate forward moves; going back must never be blocked by the current step.
+    const stepErrors = target > step ? validateStep(step) : {};
     if (Object.keys(stepErrors).length > 0) {
       setErrors(stepErrors);
       return;
@@ -225,18 +226,22 @@ export function NewProjectWizard({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <ol className="flex items-center gap-2">
+          <ol className="flex items-center gap-2" aria-label="Progress">
             {STEPS.map(({ id, label }, index) => {
               const isActive = id === step;
               const isDone = id < step;
               return (
-                <li key={id} className="flex flex-1 items-center gap-2">
+                <li
+                  key={id}
+                  aria-current={isActive ? 'step' : undefined}
+                  className="flex flex-1 items-center gap-2"
+                >
                   <span
                     className={cn(
-                      'flex size-6 shrink-0 items-center justify-center rounded-full border text-xs font-semibold',
-                      isActive && 'border-primary bg-primary text-primary-foreground',
+                      'flex size-6 shrink-0 items-center justify-center rounded-full border font-mono text-[0.68rem] font-semibold transition-colors',
+                      isActive && 'border-primary bg-primary text-primary-foreground shadow-glow',
                       isDone && 'border-primary/50 bg-accent text-accent-foreground',
-                      !isActive && !isDone && 'text-muted-foreground'
+                      !isActive && !isDone && 'border-border text-muted-foreground'
                     )}
                   >
                     {isDone ? '✓' : `0${id}`}
@@ -250,7 +255,10 @@ export function NewProjectWizard({
                     {label}
                   </span>
                   {index < STEPS.length - 1 ? (
-                    <span className="bg-border h-px flex-1" aria-hidden="true" />
+                    <span
+                      className={cn('h-px flex-1 transition-colors', isDone ? 'bg-primary/50' : 'bg-border')}
+                      aria-hidden="true"
+                    />
                   ) : null}
                 </li>
               );

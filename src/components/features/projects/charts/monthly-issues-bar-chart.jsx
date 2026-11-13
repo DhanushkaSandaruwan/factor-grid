@@ -1,22 +1,13 @@
 'use client';
 
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { AXIS_TICK, GRID_PROPS, LEGEND_TEXT_STYLE, TOOLTIP_STYLE } from './chart-theme';
 
-const TOOLTIP_STYLE = {
-  backgroundColor: 'var(--card)',
-  border: '1px solid var(--border)',
-  borderRadius: '0.5rem',
-  fontSize: '0.75rem',
-  color: 'var(--card-foreground)',
-};
+const SERIES = [
+  { key: 'open', label: 'Open', color: 'var(--status-open)' },
+  { key: 'closed', label: 'Closed', color: 'var(--status-closed)' },
+  { key: 'transferred', label: 'Transferred', color: 'var(--status-transferred)' },
+];
 
 /**
  * Monthly issue breakdown by status (open, closed, transferred).
@@ -27,37 +18,33 @@ export function MonthlyIssuesBarChart({ data, className = 'h-[190px] xl:h-auto x
     <div className={className}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-        <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--border)" />
-        <XAxis
-          dataKey="month"
-          tickLine={false}
-          axisLine={false}
-          tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
-          interval="preserveStartEnd"
-        />
-        <YAxis
-          tickLine={false}
-          axisLine={false}
-          tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
-          allowDecimals={false}
-        />
-        <Tooltip cursor={{ fill: 'var(--accent)', opacity: 0.5 }} contentStyle={TOOLTIP_STYLE} />
-        <Bar dataKey="open" name="Open" fill="var(--chart-1)" radius={[3, 3, 0, 0]} maxBarSize={28} />
-        <Bar
-          dataKey="closed"
-          name="Closed"
-          fill="var(--chart-2)"
-          radius={[3, 3, 0, 0]}
-          maxBarSize={28}
-        />
-        <Bar
-          dataKey="transferred"
-          name="Transferred"
-          fill="var(--chart-3)"
-          radius={[3, 3, 0, 0]}
-          maxBarSize={28}
-        />
-      </BarChart>
+          <CartesianGrid {...GRID_PROPS} />
+          <XAxis
+            dataKey="month"
+            tickLine={false}
+            axisLine={false}
+            tick={AXIS_TICK}
+            interval="preserveStartEnd"
+          />
+          <YAxis tickLine={false} axisLine={false} tick={AXIS_TICK} allowDecimals={false} />
+          <Tooltip cursor={{ fill: 'var(--muted)', opacity: 0.6 }} contentStyle={TOOLTIP_STYLE} />
+          <Legend
+            iconType="circle"
+            iconSize={7}
+            wrapperStyle={{ paddingTop: 4 }}
+            formatter={(value) => <span style={LEGEND_TEXT_STYLE}>{value}</span>}
+          />
+          {SERIES.map((series) => (
+            <Bar
+              key={series.key}
+              dataKey={series.key}
+              name={series.label}
+              fill={series.color}
+              radius={[4, 4, 0, 0]}
+              maxBarSize={22}
+            />
+          ))}
+        </BarChart>
       </ResponsiveContainer>
     </div>
   );

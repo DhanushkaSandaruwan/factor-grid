@@ -1,18 +1,23 @@
+/*
+ * FactorGrid brand tokens — single source of truth for raw palette values,
+ * typography, radii and elevation. Semantic tokens (background, card,
+ * primary, …) live in globals.css and reference these where needed.
+ */
 @theme {
-  /* Primary Base: Deep Slate / Obsidian Navy */
-  --color-obsidian-50: #f8fafc;
-  --color-obsidian-100: #f1f5f9;
+  /* Base: Obsidian Navy / cool slate */
+  --color-obsidian-50: #f7f9fc;
+  --color-obsidian-100: #eef2f7;
   --color-obsidian-200: #e2e8f0;
   --color-obsidian-300: #cbd5e1;
   --color-obsidian-400: #94a3b8;
   --color-obsidian-500: #64748b;
   --color-obsidian-600: #475569;
   --color-obsidian-700: #334155;
-  --color-obsidian-800: #1e293b;
-  --color-obsidian-900: #111c30;
-  --color-obsidian-950: #0f172a;
+  --color-obsidian-800: #1b2640;
+  --color-obsidian-900: #111a2e;
+  --color-obsidian-950: #0b1222;
 
-  /* Accent / Action: Analytical Cobalt Blue */
+  /* Accent: Analytical Cobalt */
   --color-cobalt-50: #f0f9ff;
   --color-cobalt-100: #e0f2fe;
   --color-cobalt-200: #bae6fd;
@@ -24,17 +29,25 @@
   --color-cobalt-800: #075985;
   --color-cobalt-900: #0c4a6e;
 
-  /* Precision Teal (secondary accent) */
+  /* Secondary accent: Precision Teal */
   --color-teal-50: #f0fdfa;
   --color-teal-100: #ccfbf1;
   --color-teal-200: #99f6e4;
   --color-teal-300: #5eead4;
   --color-teal-400: #2dd4bf;
-  --color-teal-500: #0d9488;
-  --color-teal-600: #0f766e;
-  --color-teal-700: #115e59;
-  --color-teal-800: #134e4a;
+  --color-teal-500: #14b8a6;
+  --color-teal-600: #0d9488;
+  --color-teal-700: #0f766e;
+  --color-teal-800: #115e59;
   --color-teal-900: #042f2e;
+
+  /* Status / semantic */
+  --color-success: #059669;
+  --color-success-soft: #d1fae5;
+  --color-warning: #b45309;
+  --color-warning-soft: #fef3c7;
+  --color-info: #0369a1;
+  --color-info-soft: #e0f2fe;
 
   /* Risk-level markers */
   --color-risk-low: #15803d;
@@ -46,75 +59,15 @@
   --color-risk-critical: #7f1d1d;
   --color-risk-critical-bg: #fecaca;
 
-  /* Typography */
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  /* Typography: Geist for UI, Geist Mono for identifiers and figures.
+     The variables are provided by next/font in src/app/layout.jsx. */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", Menlo, monospace;
 
-  /* Enterprise shadows */
-  --shadow-enterprise: 0 1px 2px rgb(15 23 42 / 0.04), 0 4px 16px rgb(15 23 42 / 0.06);
-  --shadow-enterprise-lg: 0 8px 24px rgb(15 23 42 / 0.1), 0 2px 6px rgb(15 23 42 / 0.05);
-
-  /* Project view screen card shadow */
-  --shadow-project: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
-}
-
-@layer base {
-  * {
-    border-color: var(--color-obsidian-200);
-  }
-
-  html {
-    scroll-behavior: smooth;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-
-  body {
-    min-width: 320px;
-    background: var(--color-obsidian-50);
-    color: var(--color-obsidian-900);
-  }
-
-  .dark body {
-    background: var(--color-obsidian-950);
-    color: var(--color-obsidian-100);
-  }
-
-  button,
-  input,
-  select,
-  textarea {
-    font: inherit;
-  }
-
-  ::selection {
-    background: var(--color-cobalt-200);
-    color: var(--color-cobalt-900);
-  }
-}
-
-@layer components {
-  .focus-ring {
-    outline: 2px solid transparent;
-    outline-offset: 2px;
-  }
-
-  .focus-ring:focus-visible {
-    outline-color: var(--color-cobalt-500);
-    box-shadow: 0 0 0 4px rgb(14 165 233 / 0.16);
-  }
-
-  .scrollbar-refined {
-    scrollbar-color: var(--color-obsidian-300) transparent;
-  }
-
-  .scrollbar-refined::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-
-  .scrollbar-refined::-webkit-scrollbar-thumb {
-    border-radius: 999px;
-    background: var(--color-obsidian-300);
-  }
+  /* Elevation — calm, layered, low-contrast */
+  --shadow-soft: 0 1px 2px rgb(15 23 42 / 0.04), 0 1px 1px rgb(15 23 42 / 0.03);
+  --shadow-enterprise: 0 1px 2px rgb(15 23 42 / 0.05), 0 4px 14px -4px rgb(15 23 42 / 0.08);
+  --shadow-enterprise-lg: 0 16px 40px -12px rgb(15 23 42 / 0.22), 0 4px 10px -4px rgb(15 23 42 / 0.08);
+  --shadow-project: 0 1px 2px rgb(15 23 42 / 0.04), 0 2px 8px -2px rgb(15 23 42 / 0.06);
+  --shadow-glow: 0 0 0 1px rgb(14 165 233 / 0.28), 0 10px 30px -8px rgb(14 165 233 / 0.55);
 }

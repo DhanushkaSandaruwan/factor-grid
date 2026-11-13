@@ -16,6 +16,9 @@ const DEFAULT_FILTERS = { status: 'all', type: 'all', packageId: 'all' };
  * issue state, issue list filters and the selected recommendation, and
  * composes the registry layout (toolbar + three-column body).
  *
+ * The body scrolls horizontally on narrower screens instead of clipping its
+ * columns, so every panel stays reachable.
+ *
  * @param {{ projectId: string, projectTitle: string, issueIdPrefix: string, initialIssues: object[], initialLinks: object[], projectPackages: object[], riskAttributes: string[], actionAttributes: string[], actionValueOptions: Record<string, string[]> }} props
  */
 export function IssueRegistryClient({
@@ -37,10 +40,7 @@ export function IssueRegistryClient({
 
   // Next display ID derived from state so it advances after each creation.
   const nextIssueId = useMemo(() => {
-    const maxNumber = issues.reduce(
-      (max, issue) => Math.max(max, issue.issueNumber ?? 0),
-      0
-    );
+    const maxNumber = issues.reduce((max, issue) => Math.max(max, issue.issueNumber ?? 0), 0);
     return `${issueIdPrefix}-${String(maxNumber + 1).padStart(3, '0')}`;
   }, [issues, issueIdPrefix]);
 
@@ -66,9 +66,7 @@ export function IssueRegistryClient({
     const isDeselect = selectedIssue?._id === issue._id;
     setSelectedIssue(isDeselect ? null : issue);
     // Default to the issue's first recommendation so its requirements load.
-    setSelectedRecommendationId(
-      isDeselect ? null : issue.recommendations?.[0]?._id ?? null
-    );
+    setSelectedRecommendationId(isDeselect ? null : issue.recommendations?.[0]?._id ?? null);
   }
 
   function handleIssueCreated(issue) {
@@ -76,9 +74,7 @@ export function IssueRegistryClient({
   }
 
   function handleIssueUpdated(updatedIssue) {
-    setIssues((prev) =>
-      prev.map((i) => (i._id === updatedIssue._id ? updatedIssue : i))
-    );
+    setIssues((prev) => prev.map((i) => (i._id === updatedIssue._id ? updatedIssue : i)));
     setSelectedIssue(updatedIssue);
     // Keep the recommendation selection valid: preserve it when the
     // recommendation still exists, otherwise fall back to the first one.
@@ -98,16 +94,18 @@ export function IssueRegistryClient({
         onFiltersChange={setFilters}
       />
 
-      <div className="flex min-h-0 flex-1 overflow-hidden">
-        {/* Left column — action bar + scrollable issue list */}
-        <div className="flex w-80 shrink-0 flex-col border-r border-border">
-          {/* Action bar */}
-          <div className="border-b border-border bg-card px-4 py-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-foreground text-sm font-semibold">Issues</p>
-                <p className="text-muted-foreground text-xs">
-                  {filteredIssues.length} of {issues.length} registered
+      <div className="scrollbar-refined flex min-h-0 flex-1 overflow-x-auto">
+        <div className="flex min-h-0 min-w-[62rem] flex-1">
+          {/* Left column — action bar + scrollable issue list */}
+          <div className="border-border/70 bg-card flex w-[19rem] shrink-0 flex-col border-r">
+            <div className="border-border/70 flex items-center justify-between gap-3 border-b px-4 py-3">
+              <div className="min-w-0">
+                <p className="eyebrow">Issues</p>
+                <p className="text-muted-foreground mt-0.5 text-xs">
+                  <span className="text-foreground font-mono font-semibold tabular-nums">
+                    {filteredIssues.length}
+                  </span>{' '}
+                  of {issues.length} registered
                 </p>
               </div>
               <AddIssueDialog
@@ -117,79 +115,72 @@ export function IssueRegistryClient({
                 onIssueCreated={handleIssueCreated}
               />
             </div>
+
+            <div className="scrollbar-refined flex-1 overflow-y-auto">
+              <IssueList issues={filteredIssues} selectedIssue={selectedIssue} onSelectIssue={handleSelectIssue} />
+            </div>
           </div>
 
-          {/* Scrollable list */}
-          <div className="flex-1 overflow-y-auto scrollbar-refined">
-            <IssueList
-              issues={filteredIssues}
-              selectedIssue={selectedIssue}
-              onSelectIssue={handleSelectIssue}
+          {/* Middle column — type, Description & Consequences of the selected issue */}
+          <div className="border-border/70 bg-card flex w-[19rem] shrink-0 flex-col border-r">
+            <IssueDetailsColumn
+              issue={selectedIssue}
+              projectId={projectId}
+              projectPackages={projectPackages}
+              onIssueUpdated={handleIssueUpdated}
             />
           </div>
-        </div>
 
-        {/* Middle column — type, Description & Consequences of the selected issue */}
-        <div className="flex w-80 shrink-0 flex-col border-r border-border bg-card">
-          <IssueDetailsColumn
-            issue={selectedIssue}
-            projectId={projectId}
-            projectPackages={projectPackages}
-            onIssueUpdated={handleIssueUpdated}
-          />
-        </div>
+          {/* Right column — recommendations & requirements above the attributes cards */}
+          <div className="bg-card/60 flex min-w-0 flex-1 flex-col">
+            {selectedIssue ? (
+              <div className="flex min-h-0 flex-1">
+                <div className="border-border/70 flex w-60 shrink-0 flex-col border-r">
+                  <IssueRecommendationsPanel
+                    projectId={projectId}
+                    issueId={selectedIssue._id}
+                    recommendations={selectedIssue.recommendations ?? []}
+                    selectedRecommendationId={selectedRecommendationId}
+                    onSelectRecommendation={setSelectedRecommendationId}
+                    onIssueUpdated={handleIssueUpdated}
+                  />
+                </div>
 
-        {/* Right column — recommendations & requirements above the attributes cards */}
-        <div className="flex flex-1 flex-col overflow-hidden bg-card">
-          {selectedIssue ? (
-            <div className="flex min-h-0 flex-1">
-              {/* Recommendations column */}
-              <div className="flex w-64 shrink-0 flex-col border-r border-border">
-                <IssueRecommendationsPanel
+                <IssueRequirementsPanel
                   projectId={projectId}
                   issueId={selectedIssue._id}
                   recommendations={selectedIssue.recommendations ?? []}
+                  links={links}
+                  projectPackages={projectPackages}
+                  projectIssues={issues}
                   selectedRecommendationId={selectedRecommendationId}
-                  onSelectRecommendation={setSelectedRecommendationId}
                   onIssueUpdated={handleIssueUpdated}
+                  onLinksChanged={setLinks}
                 />
               </div>
-
-              {/* Requirements section — one row per requirement with links, evidence & status */}
-              <IssueRequirementsPanel
+            ) : (
+              <div className="flex flex-1 items-center justify-center">
+                <div className="px-6 text-center">
+                  <p className="text-foreground text-sm font-medium">No issue selected</p>
+                  <p className="text-muted-foreground mt-1 max-w-xs text-xs leading-relaxed">
+                    Select an issue from the list to manage its recommendations, requirements and attributes.
+                  </p>
+                </div>
+              </div>
+            )}
+            {selectedIssue && (
+              <IssueAttributesPanel
+                key={selectedIssue._id}
                 projectId={projectId}
                 issueId={selectedIssue._id}
-                recommendations={selectedIssue.recommendations ?? []}
-                links={links}
-                projectPackages={projectPackages}
-                projectIssues={issues}
-                selectedRecommendationId={selectedRecommendationId}
-                onIssueUpdated={handleIssueUpdated}
-                onLinksChanged={setLinks}
+                riskAttributes={riskAttributes}
+                actionAttributes={actionAttributes}
+                actionValueOptions={actionValueOptions}
+                initialRiskValues={selectedIssue.riskAttributeValues ?? {}}
+                initialActionValues={selectedIssue.actionAttributeValues ?? {}}
               />
-            </div>
-          ) : (
-            <div className="flex flex-1 items-center justify-center">
-              <div className="px-6 text-center">
-                <p className="text-foreground text-sm font-medium">No issue selected</p>
-                <p className="text-muted-foreground mt-1 text-xs">
-                  Select an issue from the list to manage its recommendations, requirements and attributes.
-                </p>
-              </div>
-            </div>
-          )}
-          {selectedIssue && (
-            <IssueAttributesPanel
-              key={selectedIssue._id}
-              projectId={projectId}
-              issueId={selectedIssue._id}
-              riskAttributes={riskAttributes}
-              actionAttributes={actionAttributes}
-              actionValueOptions={actionValueOptions}
-              initialRiskValues={selectedIssue.riskAttributeValues ?? {}}
-              initialActionValues={selectedIssue.actionAttributeValues ?? {}}
-            />
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>

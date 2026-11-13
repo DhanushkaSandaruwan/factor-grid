@@ -3,27 +3,23 @@
 import { useState } from 'react';
 import { AlertTriangle, CheckCircle, ArrowRightLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from 'cn';
+import { Badge } from '@/components/ui/badge';
 
 const STATUS_CONFIG = {
-  open: {
-    label: 'Open',
-    icon: AlertTriangle,
-    className: 'text-amber-600 bg-amber-50 dark:bg-amber-950/30 dark:text-amber-400',
-    dot: 'bg-amber-500',
-  },
-  closed: {
-    label: 'Closed',
-    icon: CheckCircle,
-    className: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 dark:text-emerald-400',
-    dot: 'bg-emerald-500',
-  },
+  open: { label: 'Open', icon: AlertTriangle, tone: 'open', dot: 'bg-status-open' },
+  closed: { label: 'Closed', icon: CheckCircle, tone: 'closed', dot: 'bg-status-closed' },
   transferred: {
     label: 'Transferred',
     icon: ArrowRightLeft,
-    className: 'text-sky-600 bg-sky-50 dark:bg-sky-950/30 dark:text-sky-400',
-    dot: 'bg-sky-500',
+    tone: 'transferred',
+    dot: 'bg-status-transferred',
   },
 };
+
+/** Small uppercase label above a detail block. */
+function DetailLabel({ children }) {
+  return <p className="eyebrow text-[0.6rem]">{children}</p>;
+}
 
 function IssueRow({ issue, isSelected, onSelectIssue }) {
   const [expanded, setExpanded] = useState(false);
@@ -31,12 +27,21 @@ function IssueRow({ issue, isSelected, onSelectIssue }) {
   const StatusIcon = cfg.icon;
 
   return (
-    <div className="border-b border-border last:border-0">
+    <div className="border-border/70 relative border-b last:border-0">
+      {/* Selected accent edge */}
+      <span
+        aria-hidden="true"
+        className={cn(
+          'absolute inset-y-0 left-0 w-0.5 rounded-r transition-opacity',
+          isSelected ? 'bg-primary opacity-100' : 'opacity-0'
+        )}
+      />
       {/* Summary row — always visible. A div (not button) so the expand
           toggle can be a real <button> inside it (buttons can't nest). */}
       <div
         role="button"
         tabIndex={0}
+        aria-pressed={isSelected}
         onClick={() => onSelectIssue(issue)}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
@@ -45,45 +50,40 @@ function IssueRow({ issue, isSelected, onSelectIssue }) {
           }
         }}
         className={cn(
-          'group flex w-full cursor-pointer items-start gap-3 px-4 py-3 text-left transition-colors focus-visible:ring-ring outline-none focus-visible:ring-2 focus-visible:ring-inset',
-          isSelected
-            ? 'bg-accent/60'
-            : 'hover:bg-muted/50'
+          'group focus-ring flex w-full cursor-pointer items-start gap-3 py-3 pr-3 pl-4 text-left transition-colors outline-none focus-visible:ring-inset',
+          isSelected ? 'bg-accent/50' : 'hover:bg-muted/50'
         )}
       >
-        {/* Status dot */}
-        <span className={cn('mt-1.5 size-2 shrink-0 rounded-full', cfg.dot)} />
+        <span className={cn('mt-1.5 size-1.5 shrink-0 rounded-full', cfg.dot)} />
 
-        {/* ID + title */}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-[0.75rem] font-semibold text-muted-foreground">
-              {issue.issueId}
-            </span>
-            <span className={cn('inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[0.65rem] font-medium', cfg.className)}>
-              <StatusIcon data-icon="inline-start" className="size-2.5" />
+            <span className="text-muted-foreground font-mono text-[0.72rem] font-semibold">{issue.issueId}</span>
+            <Badge tone={cfg.tone}>
+              <StatusIcon aria-hidden="true" />
               {cfg.label}
-            </span>
+            </Badge>
           </div>
-          <p className={cn(
-            'mt-0.5 text-sm font-medium leading-snug',
-            isSelected ? 'text-foreground' : 'text-foreground/80 group-hover:text-foreground'
-          )}>
+          <p
+            className={cn(
+              'mt-1 text-sm leading-snug font-medium',
+              isSelected ? 'text-foreground' : 'text-foreground/85 group-hover:text-foreground'
+            )}
+          >
             {issue.title}
           </p>
-          {issue.source && (
-            <p className="text-muted-foreground mt-0.5 truncate text-xs">
-              {issue.source}
-            </p>
-          )}
+          {issue.source && <p className="text-muted-foreground mt-0.5 truncate text-xs">{issue.source}</p>}
         </div>
 
-        {/* Expand toggle */}
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
-          className="text-muted-foreground hover:text-foreground mt-1 shrink-0 cursor-pointer rounded p-0.5 transition-colors"
+          onClick={(e) => {
+            e.stopPropagation();
+            setExpanded((v) => !v);
+          }}
+          className="text-muted-foreground hover:bg-muted hover:text-foreground focus-ring mt-0.5 shrink-0 cursor-pointer rounded-md p-1 transition-colors outline-none"
           aria-label={expanded ? 'Collapse details' : 'Expand details'}
+          aria-expanded={expanded}
         >
           {expanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
         </button>
@@ -91,38 +91,29 @@ function IssueRow({ issue, isSelected, onSelectIssue }) {
 
       {/* Expanded details */}
       {expanded && (
-        <div className="border-t border-border bg-muted/30 px-4 pb-3 pt-2">
+        <div className="bg-muted/40 border-border/60 space-y-2.5 border-t py-3 pr-3 pl-4">
           {issue.packages?.length > 0 && (
-            <div className="mb-2">
-              <p className="text-muted-foreground text-[0.65rem] font-medium uppercase tracking-wide">
-                Packages
-              </p>
+            <div>
+              <DetailLabel>Packages</DetailLabel>
               <div className="mt-1 flex flex-wrap gap-1">
                 {issue.packages.map((pkg) => (
-                  <span
-                    key={pkg._id ?? pkg}
-                    className="bg-primary/10 text-primary inline-flex items-center rounded-full px-2 py-0.5 text-[0.7rem] font-medium"
-                  >
+                  <Badge key={pkg._id ?? pkg} tone="primary">
                     {typeof pkg === 'object' ? pkg.packageId : pkg}
-                  </span>
+                  </Badge>
                 ))}
               </div>
             </div>
           )}
           {issue.description && (
-            <div className="mb-2">
-              <p className="text-muted-foreground text-[0.65rem] font-medium uppercase tracking-wide">
-                Description
-              </p>
-              <p className="text-foreground mt-0.5 text-xs leading-relaxed">{issue.description}</p>
+            <div>
+              <DetailLabel>Description</DetailLabel>
+              <p className="text-foreground/90 mt-0.5 text-xs leading-relaxed">{issue.description}</p>
             </div>
           )}
           {issue.consequences && (
             <div>
-              <p className="text-muted-foreground text-[0.65rem] font-medium uppercase tracking-wide">
-                Consequences
-              </p>
-              <p className="text-foreground mt-0.5 text-xs leading-relaxed">{issue.consequences}</p>
+              <DetailLabel>Consequences</DetailLabel>
+              <p className="text-foreground/90 mt-0.5 text-xs leading-relaxed">{issue.consequences}</p>
             </div>
           )}
         </div>
@@ -140,20 +131,20 @@ function IssueRow({ issue, isSelected, onSelectIssue }) {
 export function IssueList({ issues, selectedIssue, onSelectIssue }) {
   if (issues.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <div className="bg-muted mb-3 flex size-12 items-center justify-center rounded-full">
+      <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
+        <div className="bg-muted mb-3 flex size-11 items-center justify-center rounded-xl">
           <AlertTriangle className="text-muted-foreground size-5" />
         </div>
         <p className="text-foreground text-sm font-medium">No issues registered</p>
-        <p className="text-muted-foreground mt-1 text-xs">
-          Click "New Issue" to register the first issue for this project.
+        <p className="text-muted-foreground mt-1 text-xs leading-relaxed">
+          Click &quot;New Issue&quot; to register the first issue for this project.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="divide-y divide-border">
+    <div>
       {issues.map((issue) => (
         <IssueRow
           key={issue._id}

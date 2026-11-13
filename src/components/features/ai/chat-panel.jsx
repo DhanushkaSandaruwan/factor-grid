@@ -47,7 +47,7 @@ export function ChatPanel({ open, onClose, messages, isStreaming, onSend }) {
         </span>
         <div className="min-w-0 flex-1">
           <p className="text-foreground truncate text-sm font-semibold">AI Assistant</p>
-          <p className="text-muted-foreground truncate text-xs">Powered by Aqord</p>
+          <p className="text-muted-foreground truncate text-xs">FactorGrid AI</p>
         </div>
         <button
           type="button"

@@ -17,7 +17,7 @@ export function AiFab({ open, onToggle }) {
       aria-expanded={open}
       className={cn(
         buttonVariants({ variant: 'default', size: 'icon-lg' }),
-        'bg-primary text-primary-foreground hover:bg-primary/90 fixed right-4 bottom-6 z-50 rounded-full shadow-enterprise'
+        'bg-gradient-to-br from-primary to-chart-2 text-primary-foreground fixed right-4 bottom-6 z-50 rounded-full shadow-enterprise transition-shadow hover:shadow-glow'
       )}
     >
       <Sparkles className="size-5" />

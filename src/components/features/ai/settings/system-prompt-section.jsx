@@ -58,7 +58,7 @@ export function SystemPromptSection({ settings, onSettingsChange }) {
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         {error && <p className="text-destructive text-xs">{error}</p>}
-        {saved && <p className="text-green-600 dark:text-green-400 text-xs">Saved.</p>}
+        {saved && <p className="text-success text-xs">Saved.</p>}
 
         <Textarea
           value={prompt}

@@ -63,7 +63,7 @@ function RiskRow({ attributes, values, onStep }) {
  * Action Attributes row — text attributes edit in place, dropdown-backed
  * attributes (linked via valueCategory) render a select. Dark card treatment.
  */
-function ActionRow({ attributes, values, actionValueOptions, onTextChange, onDropdownChange }) {
+function ActionRow({ attributes, values, actionValueOptions, onTextChange, onTextBlur, onDropdownChange }) {
   const dropdownOptionsFor = (name) => actionValueOptions[name];
 
   return (
@@ -84,6 +84,7 @@ function ActionRow({ attributes, values, actionValueOptions, onTextChange, onDro
                 type="text"
                 value={values[name] ?? ''}
                 onChange={(e) => onTextChange(name, e.target.value)}
+                onBlur={(e) => onTextBlur(name, e.target.value)}
                 placeholder="Enter value…"
                 aria-label={name}
                 className="text-foreground placeholder:text-obsidian-500 w-32 rounded bg-transparent text-xs outline-none"
@@ -166,8 +167,13 @@ export function IssueAttributesPanel({
     persist({ riskValues: { [name]: next } });
   }
 
+  // Text attributes update locally while typing and save once on blur,
+  // instead of sending one request per keystroke.
   function handleTextChange(name, value) {
     setActionValues((prev) => ({ ...prev, [name]: value }));
+  }
+
+  function handleTextBlur(name, value) {
     persist({ actionValues: { [name]: value } });
   }
 
@@ -188,6 +194,7 @@ export function IssueAttributesPanel({
         values={actionValues}
         actionValueOptions={actionValueOptions}
         onTextChange={handleTextChange}
+        onTextBlur={handleTextBlur}
         onDropdownChange={handleDropdownChange}
       />
       <div className="flex h-4 items-center justify-end">

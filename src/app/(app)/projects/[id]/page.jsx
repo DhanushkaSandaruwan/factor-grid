@@ -6,6 +6,7 @@ import { getProjectById } from '@/lib/services/project-service';
 import { getProjectAnalytics } from '@/lib/services/project-analytics-service';
 import { getProjectTeam, hasActiveMembership } from '@/lib/services/membership-service';
 import { buttonVariants } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { BackButton } from '@/components/features/projects/back-button';
 import { ProjectMetrics } from '@/components/features/projects/project-metrics';
 import { ProjectCharts } from '@/components/features/projects/project-charts';
@@ -41,14 +42,14 @@ export default async function ProjectPage({ params }) {
       <div className="flex min-h-full w-full flex-col gap-4 p-4 sm:p-6 xl:h-full xl:min-h-0">
         <header className="flex flex-wrap items-center gap-3">
           <BackButton fallbackHref="/dashboard" />
-          <div className="min-w-0 flex-1 space-y-0.5">
+          <div className="min-w-0 flex-1 space-y-1">
+            <p className="eyebrow">{project.client}</p>
             <div className="flex flex-wrap items-center gap-2.5">
               <h1 className="truncate text-2xl font-semibold tracking-tight">{project.title}</h1>
-              <span className="bg-accent text-accent-foreground inline-flex h-6 shrink-0 items-center rounded-md px-2 font-mono text-xs font-semibold">
+              <Badge tone="accent" mono className="h-6 px-2 text-xs">
                 {project.issueIdPrefix}
-              </span>
+              </Badge>
             </div>
-            <p className="text-muted-foreground truncate text-sm">{project.client}</p>
           </div>
           {canEdit && (
             <div className="flex items-center gap-2">
