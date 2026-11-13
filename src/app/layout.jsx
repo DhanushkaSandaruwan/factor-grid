@@ -2,6 +2,8 @@ import { ClerkProvider } from '@clerk/nextjs';
 import '@/styles/globals.css';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { cn } from '@/lib/utils';
+import { ServiceWorkerRegister } from '@/components/features/layout/service-worker-register';
+import { ConnectionGate } from '@/components/features/layout/connection-gate';
 
 const geistSans = Geist({ subsets: ['latin'], variable: '--font-geist-sans' });
 const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono' });
@@ -13,14 +15,15 @@ export const metadata = {
   },
   description: 'Enterprise analytics for human factors issue reporting and risk governance.',
   keywords: ['human factors', 'issue reporting', 'risk assessment', 'enterprise analytics'],
+  applicationName: 'Factor Grid',
+  appleWebApp: { capable: true, title: 'Factor Grid', statusBarStyle: 'default' },
+  icons: { apple: '/icons/apple-touch-icon.png' },
 };
 
 export const viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f5f7fb' },
-  ],
+  themeColor: [{ media: '(prefers-color-scheme: light)', color: '#f5f7fb' }],
 };
 
 export default function RootLayout({ children }) {
@@ -33,6 +36,8 @@ export default function RootLayout({ children }) {
     >
       <body className="bg-background text-foreground antialiased">
         <ClerkProvider>{children}</ClerkProvider>
+        <ServiceWorkerRegister />
+        <ConnectionGate />
       </body>
     </html>
   );

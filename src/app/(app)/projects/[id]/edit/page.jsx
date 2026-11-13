@@ -6,6 +6,7 @@ import { getProjectById } from '@/lib/services/project-service';
 import { hasActiveMembership } from '@/lib/services/membership-service';
 import { BackButton } from '@/components/features/projects/back-button';
 import { NewProjectWizard } from '@/components/features/projects/new-project-wizard';
+import { DeleteProjectZone } from '@/components/features/projects/delete-project-zone';
 
 export const metadata = {
   title: 'Edit Project',
@@ -24,8 +25,7 @@ export default async function EditProjectPage({ params }) {
 
   // Only the owner or an active editor may edit the project.
   const isOwner = String(project.createdBy) === userId;
-  const canEdit =
-    isOwner || (await hasActiveMembership(userId, id, ['editor']));
+  const canEdit = isOwner || (await hasActiveMembership(userId, id, ['editor']));
   if (!canEdit) notFound();
 
   return (
@@ -52,6 +52,11 @@ export default async function EditProjectPage({ params }) {
           }}
           initialSelectedPackageIds={(project.packages ?? []).map((pkg) => String(pkg._id))}
         />
+        {String(project.createdBy) === userId ? (
+          <div className="mt-8">
+            <DeleteProjectZone projectId={String(project._id)} title={project.title} />
+          </div>
+        ) : null}
       </div>
     </div>
   );

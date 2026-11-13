@@ -1,3 +1,4 @@
+import { recordAudit } from '@/lib/services/audit-service';
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { getProjectById } from '@/lib/services/project-service';
@@ -50,15 +51,18 @@ export async function POST(request, { params }) {
       if (result.code === 'forbidden') {
         return NextResponse.json(
           { error: 'You do not have permission to invite members to this project.' },
-          { status: 403 }
+          { status: 403 },
         );
       }
       return NextResponse.json({ errors: result.errors }, { status: 400 });
     }
-    return NextResponse.json(
-      { member: result.member, registered: result.registered },
-      { status: 201 }
-    );
+    await recordAudit({
+      projectId: id,
+      actor: userId,
+      action: 'member.invited',
+      summary: 'Invited a team member',
+    });
+    return NextResponse.json({ member: result.member, registered: result.registered }, { status: 201 });
   } catch (error) {
     console.error('[api/projects/members] failed to invite member:', error);
     return NextResponse.json({ error: 'Failed to invite member' }, { status: 500 });

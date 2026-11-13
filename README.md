@@ -182,3 +182,65 @@ Requires a `.env.local` with `MONGODB_URI` and Clerk keys (see
 `.env.local.example`). Media storage additionally needs the Cloudflare R2
 settings listed in `.env.local.example`. The AI companion needs `GROQ_API_KEYS`
 (see above).
+
+## Installing your own copy
+
+Each customer runs their own installation with its own database, Clerk application and file storage. Data is never shared between installations.
+
+1. **Environment** — copy `.env.local` and set:
+   - `MONGODB_URI` — the customer's MongoDB database.
+   - Clerk keys (`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`).
+   - Object storage (R2/S3) settings used by evidence uploads.
+   - AI provider keys, if the AI assistant is used.
+2. **Install and start** — `npm install`, then `npm run build` and `npm start` (or your hosting platform's equivalent).
+3. **First user** — the first person to complete onboarding becomes the installation's **administrator**. The administrator manages the shared attribute lists under *Settings → Attribute lists*.
+4. **Existing installation** — if the installation was set up before the administrator role existed, set it once with:
+   `node --env-file=.env.local scripts/set-deployment-admin.mjs <clerkUserId>`
+5. **Backups** — back up the MongoDB database and the object-storage bucket together. Evidence files live in storage; issues reference them by id.
+
+### Roles
+
+| Role | Can do |
+| --- | --- |
+| Owner | Everything for their project, including deleting it. |
+| Editor | Change project content, issues, requirements, evidence and links; invite members. |
+| Viewer | Read the registry, reports, activity and exports. No changes. |
+| Installation administrator | Manage the shared attribute lists. |
+
+### Tests
+
+- `npm test` runs the unit tests (no database needed).
+- Integration tests run only when a disposable database is provided:
+  `TEST_MONGODB_URI=mongodb://127.0.0.1:27017/hfdb_test npm test`. They drop that database, so never point them at real data.
+
+### AI and data handling
+
+- The AI assistant and the **Suggest with AI** button send the text they work on (issue title, description, consequences, questions) to the AI provider configured under *Settings*. Choose a provider that meets your data-protection requirements before enabling them.
+- AI output is only a draft. Nothing is saved until a person accepts it.
+- To keep the AI features off, leave no AI keys configured; the buttons then show a clear message.
+
+## Importing registry data
+
+Open a project, choose **Import** (editors and the owner), and download the template. The Excel and CSV templates use the same layout as the registry export and include the project's own attribute columns.
+
+1. **Upload** an `.xlsx` or `.csv` file (up to 10 MB, 5,000 rows). The file is stored in object storage first, then checked. Nothing is written to the registry at this step.
+2. **Check.** Every problem is listed with its line and column, for example an unknown attribute name with a suggestion, an assignee who is not a project member, or a due date that is not `YYYY-MM-DD`. Correct the file and upload it again.
+3. **Import.** When the check passes, you see which packages will be created and which existing packages will be attached to the project. Confirm to import. If anything fails part-way, the issues created by that import are removed again.
+
+Rules: `Project` must be this project on every row; each issue starts on a row with a Title; later rows of the same issue leave issue columns blank; closed issues are closed in the app with a sign-off (import accepts open or transferred); links and evidence are read-only in the export and are not imported.
+
+Every upload is kept in object storage with its original bytes, including rejected uploads. The upload history on the Import page lets editors and the owner download any file again for an audit, and each download is logged.
+
+## Deleting a project
+
+Only the project's owner can delete it, from **Edit project → Delete project**, by typing the project's title. Deletion removes the project with its issues, comments, files, uploads, baselines, notifications and activity log. Stored files are removed from object storage first; if storage refuses, the project is kept and deletion can be retried.
+
+## Installing the app on a device
+
+Factor Grid is a Progressive Web App. It runs in the browser and can be installed like an app:
+
+- **Windows, macOS, Linux, ChromeOS (Chrome or Edge):** click the install icon in the address bar, or use the Install app button in the top bar.
+- **Android (Chrome):** tap the Install app button, or the menu, then "Install app".
+- **iPhone and iPad (Safari):** tap Share, then "Add to Home Screen". The Install app button shows these steps.
+
+Installation requires HTTPS in production (`localhost` works for testing). The service worker caches only static app files. Registry data, pages and API responses are never cached, so the app needs a connection to load and save data; offline it shows a "You are offline" page.

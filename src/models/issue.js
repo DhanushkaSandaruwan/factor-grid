@@ -56,6 +56,21 @@ const issueSchema = new mongoose.Schema(
       index: true,
     },
 
+    /** Clerk user id of the project member responsible for the issue (empty when unassigned). */
+    assigneeId: { type: String, default: '', index: true },
+
+    /** Display name of the assignee, kept with the issue for export and audit. */
+    assignee: { type: String, trim: true, maxlength: 120, default: '' },
+
+    /** Date by which the issue should be resolved. */
+    dueDate: { type: Date, default: null, index: true },
+
+    /** Sign-off recorded when the issue was closed. Cleared when it is reopened. */
+    closedAt: { type: Date, default: null },
+    closedBy: { type: String, default: '' },
+    closedByName: { type: String, default: '', maxlength: 200 },
+    signedName: { type: String, default: '', maxlength: 200 },
+
     /** User who reported / created the issue. */
     createdBy: { type: String, required: true, index: true },
 
@@ -72,6 +87,13 @@ const issueSchema = new mongoose.Schema(
      * the selected dropdown option. Stored per issue.
      */
     actionAttributeValues: { type: Map, of: mongoose.Schema.Types.Mixed, default: new Map() },
+
+    /**
+     * On/off flags for project-specific HF attributes (custom names only;
+     * the built-in Recommendation / Requirement / Links / Evidence attributes
+     * are derived from the issue's content and are not stored here).
+     */
+    hfAttributeValues: { type: Map, of: Boolean, default: new Map() },
 
     /**
      * Free-text recommendations recorded for this issue. Multiple entries
@@ -123,7 +145,7 @@ const issueSchema = new mongoose.Schema(
       default: [],
     },
   },
-  { timestamps: true, collection: 'issues' }
+  { timestamps: true, collection: 'issues' },
 );
 
 // Compound index so listing issues for a project is fast and sorted by creation.

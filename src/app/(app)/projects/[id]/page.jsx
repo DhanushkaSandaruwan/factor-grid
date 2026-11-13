@@ -12,6 +12,7 @@ import { ProjectMetrics } from '@/components/features/projects/project-metrics';
 import { ProjectCharts } from '@/components/features/projects/project-charts';
 import { ProjectTrendCard } from '@/components/features/projects/project-trend-card';
 import { ProjectTeam } from '@/components/features/projects/project-team';
+import { RiskMatrixCard } from '@/components/features/projects/risk-matrix-card';
 
 export async function generateMetadata({ params }) {
   const { userId } = await auth();
@@ -51,6 +52,28 @@ export default async function ProjectPage({ params }) {
               </Badge>
             </div>
           </div>
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/projects/${String(project._id)}/report`}
+              className={buttonVariants({ variant: 'ghost', size: 'sm' })}
+            >
+              Report
+            </Link>
+            {canEdit ? (
+              <Link
+                href={`/projects/${String(project._id)}/import`}
+                className={buttonVariants({ variant: 'ghost', size: 'sm' })}
+              >
+                Import
+              </Link>
+            ) : null}
+            <Link
+              href={`/projects/${String(project._id)}/activity`}
+              className={buttonVariants({ variant: 'ghost', size: 'sm' })}
+            >
+              Activity
+            </Link>
+          </div>
           {canEdit && (
             <div className="flex items-center gap-2">
               <Link
@@ -77,8 +100,9 @@ export default async function ProjectPage({ params }) {
         <div className="grid flex-1 gap-4 xl:min-h-0 xl:grid-cols-4">
           <section className="scrollbar-refined flex flex-col gap-4 xl:-m-1 xl:min-h-0 xl:overflow-y-auto xl:p-1">
             <ProjectMetrics analytics={analytics} />
+            <RiskMatrixCard projectId={String(project._id)} riskAttributes={project.riskAttributes ?? []} />
           </section>
-          <section className="scrollbar-refined grid gap-4 xl:-m-1 xl:col-span-2 xl:min-h-0 xl:grid-rows-2 xl:overflow-y-auto xl:p-1">
+          <section className="scrollbar-refined grid gap-4 xl:col-span-2 xl:-m-1 xl:min-h-0 xl:grid-rows-2 xl:overflow-y-auto xl:p-1">
             <ProjectCharts analytics={analytics} />
             <ProjectTrendCard analytics={analytics} />
           </section>

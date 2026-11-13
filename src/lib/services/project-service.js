@@ -6,7 +6,14 @@ import { ProjectMembership } from '@/models/project-membership';
 import { Issue } from '@/models/issue';
 import { Link } from '@/models/link';
 import { MediaFile } from '@/models/media-file';
-import { validateAttributeSelections } from './attribute-option-service';
+import { IssueComment } from '@/models/issue-comment';
+import { Notification } from '@/models/notification';
+import { ProjectBaseline } from '@/models/project-baseline';
+import { AuditEvent } from '@/models/audit-event';
+import { ImportBatch } from '@/models/import-batch';
+import { isR2Configured } from '@/lib/r2';
+import { deleteObject } from './storage-service';
+import { resolveAttributeSelections } from './attribute-option-service';
 import { getPackagesByIds } from './package-service';
 import { collectFieldErrors } from './validation-utils';
 
@@ -38,18 +45,20 @@ export const projectBasicsSchema = z.object({
  * @param {unknown} payload
  * @returns {Promise<{step: number, errors: Record<string, string>} | {data: object, selections: {hf: string[], risk: string[], action: string[]}, packages: object[]}>}
  */
-async function validateProjectPayload(payload) {
+async function validateProjectPayload(payload, existing = {}) {
   const parsed = projectBasicsSchema.safeParse(payload);
   if (!parsed.success) {
     return { step: 1, errors: collectFieldErrors(parsed.error) };
   }
 
-  const selections = {
-    hf: payload.hfAttributes ?? [],
-    risk: payload.riskAttributes ?? [],
-    action: payload.actionAttributes ?? [],
-  };
-  const attributeErrors = await validateAttributeSelections(selections);
+  const { selections, errors: attributeErrors } = await resolveAttributeSelections(
+    {
+      hf: payload.hfAttributes ?? [],
+      risk: payload.riskAttributes ?? [],
+      action: payload.actionAttributes ?? [],
+    },
+    existing,
+  );
   if (Object.keys(attributeErrors).length > 0) {
     return { step: 2, errors: attributeErrors };
   }
@@ -112,9 +121,7 @@ export async function getProjectsForUser(clerkUserId) {
 export async function getProjectById(clerkUserId, projectId) {
   if (!mongoose.isValidObjectId(projectId)) return null;
   await connectToDatabase();
-  const project = await Project.findById(projectId)
-    .populate('packages', 'packageId description')
-    .lean();
+  const project = await Project.findById(projectId).populate('packages', 'packageId description').lean();
   if (!project) return null;
 
   if (project.createdBy !== clerkUserId) {
@@ -197,7 +204,11 @@ export async function updateProject(clerkUserId, projectId, payload) {
     return { ok: false, code: 'forbidden' };
   }
 
-  const validated = await validateProjectPayload(payload);
+  const validated = await validateProjectPayload(payload, {
+    hf: project.hfAttributes ?? [],
+    risk: project.riskAttributes ?? [],
+    action: project.actionAttributes ?? [],
+  });
   if (validated.errors) {
     return { ok: false, step: validated.step, errors: validated.errors };
   }
@@ -225,10 +236,10 @@ export async function updateProject(clerkUserId, projectId, payload) {
         packages: packages.map((pkg) => pkg._id),
       },
     },
-    { new: true }
+    { new: true },
   )
     .populate('packages', 'packageId description')
-      .lean();
+    .lean();
 
   return { ok: true, project: updated };
 }
@@ -241,35 +252,50 @@ export async function updateProject(clerkUserId, projectId, payload) {
  * @returns {Promise<{ok: true} | {ok: false, code: string}>}
  */
 export async function deleteProject(clerkUserId, projectId) {
-    if (!mongoose.isValidObjectId(projectId)) {
-      return { ok: false, code: 'not_found' };
+  if (!mongoose.isValidObjectId(projectId)) {
+    return { ok: false, code: 'not_found' };
+  }
+
+  await connectToDatabase();
+  const project = await Project.findById(projectId).lean();
+  if (!project) {
+    return { ok: false, code: 'not_found' };
+  }
+  if (project.createdBy !== clerkUserId) {
+    return { ok: false, code: 'forbidden' };
+  }
+
+  const projectObjectId = new mongoose.Types.ObjectId(projectId);
+
+  // Remove stored files first. If storage refuses, keep the project so the
+  // owner can retry; nothing is left pointing at deleted files.
+  const files = await MediaFile.find({ project: projectObjectId }).select('key').lean();
+  const uploads = await ImportBatch.find({ project: projectObjectId }).select('key').lean();
+  const storedKeys = [...files.map((f) => f.key), ...uploads.map((u) => u.key)];
+  if (isR2Configured()) {
+    try {
+      for (const key of storedKeys) {
+        await deleteObject(key);
+      }
+    } catch (error) {
+      console.error('[projects] could not delete stored files, project kept:', error);
+      return { ok: false, code: 'storage_failed' };
     }
+  }
 
-    await connectToDatabase();
-    const project = await Project.findById(projectId).lean();
-    if (!project) {
-      return { ok: false, code: 'not_found' };
-    }
-    if (project.createdBy !== clerkUserId) {
-      return { ok: false, code: 'forbidden' };
-    }
+  await Promise.all([
+    Issue.deleteMany({ project: projectObjectId }),
+    IssueComment.deleteMany({ project: projectObjectId }),
+    Notification.deleteMany({ project: projectObjectId }),
+    ProjectBaseline.deleteMany({ project: projectObjectId }),
+    AuditEvent.deleteMany({ project: projectObjectId }),
+    Link.deleteMany({ project: projectObjectId }),
+    MediaFile.deleteMany({ project: projectObjectId }),
+    ProjectMembership.deleteMany({ project: projectObjectId }),
+    ImportBatch.deleteMany({ project: projectObjectId }),
+  ]);
 
-    const projectObjectId = new mongoose.Types.ObjectId(projectId);
+  await Project.findByIdAndDelete(projectObjectId);
 
-    // Delete all issues and their recommendations/requirements.
-    await Issue.deleteMany({ project: projectObjectId });
-
-    // Delete all links (they reference issues, so do this after issues).
-    await Link.deleteMany({ project: projectObjectId });
-
-    // Delete all project-scoped media files.
-    await MediaFile.deleteMany({ project: projectObjectId });
-
-    // Delete all memberships.
-    await ProjectMembership.deleteMany({ project: projectObjectId });
-
-    // Finally, delete the project itself.
-    await Project.findByIdAndDelete(projectObjectId);
-
-    return { ok: true };
+  return { ok: true };
 }

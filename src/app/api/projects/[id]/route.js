@@ -1,3 +1,4 @@
+import { recordAudit } from '@/lib/services/audit-service';
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { updateProject, deleteProject } from '@/lib/services/project-service';
@@ -27,11 +28,17 @@ export async function PUT(request, { params }) {
       if (result.code === 'forbidden') {
         return NextResponse.json(
           { error: 'You do not have permission to edit this project.' },
-          { status: 403 }
+          { status: 403 },
         );
       }
       return NextResponse.json({ step: result.step, errors: result.errors }, { status: 400 });
     }
+    await recordAudit({
+      projectId: id,
+      actor: userId,
+      action: 'project.updated',
+      summary: 'Updated project settings',
+    });
     return NextResponse.json({ project: result.project }, { status: 200 });
   } catch (error) {
     console.error('[api/projects] failed to update project:', error);
@@ -57,9 +64,16 @@ export async function DELETE(_request, { params }) {
       if (result.code === 'forbidden') {
         return NextResponse.json(
           { error: 'Only the project owner can delete this project.' },
-          { status: 403 }
+          { status: 403 },
         );
       }
+      if (result.code === 'storage_failed') {
+        return NextResponse.json(
+          { error: 'Some stored files could not be removed, so the project was kept. Try again shortly.' },
+          { status: 503 },
+        );
+      }
+      return NextResponse.json({ error: 'Failed to delete project' }, { status: 500 });
     }
     return NextResponse.json({ ok: true }, { status: 200 });
   } catch (error) {

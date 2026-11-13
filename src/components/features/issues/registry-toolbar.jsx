@@ -1,9 +1,9 @@
 'use client';
 
 import { useMemo } from 'react';
-import { X } from 'lucide-react';
+import { Download, X } from 'lucide-react';
 import { BackButton } from '@/components/features/projects/back-button';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { InlineStat } from '@/components/ui/stat';
 
@@ -86,8 +86,7 @@ export function RegistryToolbar({ projectId, issues, projectPackages, filters, o
     };
   }, [issues]);
 
-  const hasActiveFilters =
-    filters.status !== 'all' || filters.type !== 'all' || filters.packageId !== 'all';
+  const hasActiveFilters = filters.status !== 'all' || filters.type !== 'all' || filters.packageId !== 'all';
 
   function update(patch) {
     onFiltersChange({ ...filters, ...patch });
@@ -124,6 +123,18 @@ export function RegistryToolbar({ projectId, issues, projectPackages, filters, o
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <a
+            href={`/api/projects/${projectId}/export`}
+
+            download
+
+            className={buttonVariants({ variant: 'outline', size: 'sm' })}
+
+            title="Download the registry as CSV"
+          >
+            <Download data-icon="inline-start" />
+            Export CSV
+          </a>
           <Select
             size="sm"
             value={filters.status}

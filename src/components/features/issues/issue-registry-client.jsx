@@ -25,9 +25,12 @@ export function IssueRegistryClient({
   projectId,
   projectTitle,
   issueIdPrefix,
+  canEdit = true,
+  people = [],
   initialIssues,
   initialLinks,
   projectPackages,
+  hfAttributes,
   riskAttributes,
   actionAttributes,
   actionValueOptions,
@@ -53,7 +56,7 @@ export function IssueRegistryClient({
       if (
         packageFilter !== 'all' &&
         !(issue.packages ?? []).some((pkg) =>
-          typeof pkg === 'object' ? pkg._id === packageFilter : String(pkg) === packageFilter
+          typeof pkg === 'object' ? pkg._id === packageFilter : String(pkg) === packageFilter,
         )
       ) {
         return false;
@@ -66,7 +69,7 @@ export function IssueRegistryClient({
     const isDeselect = selectedIssue?._id === issue._id;
     setSelectedIssue(isDeselect ? null : issue);
     // Default to the issue's first recommendation so its requirements load.
-    setSelectedRecommendationId(isDeselect ? null : issue.recommendations?.[0]?._id ?? null);
+    setSelectedRecommendationId(isDeselect ? null : (issue.recommendations?.[0]?._id ?? null));
   }
 
   function handleIssueCreated(issue) {
@@ -80,109 +83,126 @@ export function IssueRegistryClient({
     // recommendation still exists, otherwise fall back to the first one.
     setSelectedRecommendationId((prev) => {
       const recs = updatedIssue.recommendations ?? [];
-      return recs.some((rec) => rec._id === prev) ? prev : recs[0]?._id ?? null;
+      return recs.some((rec) => rec._id === prev) ? prev : (recs[0]?._id ?? null);
     });
   }
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <RegistryToolbar
-        projectId={projectId}
-        issues={issues}
-        projectPackages={projectPackages}
-        filters={filters}
-        onFiltersChange={setFilters}
-      />
+      {!canEdit && (
+        <div className="bg-muted/60 text-muted-foreground border-border/70 border-b px-5 py-1.5 text-xs">
+          Read-only access — you can review this registry, but only the project owner or an editor can make
+          changes.
+        </div>
+      )}
+      {/* Disabling the fieldset makes every control inside it inert for read-only users. */}
+      <fieldset disabled={!canEdit} className="flex min-h-0 min-w-0 flex-1 flex-col border-0 p-0">
+        <RegistryToolbar
+          projectId={projectId}
+          issues={issues}
+          projectPackages={projectPackages}
+          filters={filters}
+          onFiltersChange={setFilters}
+        />
 
-      <div className="scrollbar-refined flex min-h-0 flex-1 overflow-x-auto">
-        <div className="flex min-h-0 min-w-[62rem] flex-1">
-          {/* Left column — action bar + scrollable issue list */}
-          <div className="border-border/70 bg-card flex w-[19rem] shrink-0 flex-col border-r">
-            <div className="border-border/70 flex items-center justify-between gap-3 border-b px-4 py-3">
-              <div className="min-w-0">
-                <p className="eyebrow">Issues</p>
-                <p className="text-muted-foreground mt-0.5 text-xs">
-                  <span className="text-foreground font-mono font-semibold tabular-nums">
-                    {filteredIssues.length}
-                  </span>{' '}
-                  of {issues.length} registered
-                </p>
+        <div className="scrollbar-refined flex min-h-0 flex-1 overflow-x-auto">
+          <div className="flex min-h-0 min-w-[62rem] flex-1">
+            {/* Left column — action bar + scrollable issue list */}
+            <div className="border-border/70 bg-card flex w-[19rem] shrink-0 flex-col border-r">
+              <div className="border-border/70 flex items-center justify-between gap-3 border-b px-4 py-3">
+                <div className="min-w-0">
+                  <p className="eyebrow">Issues</p>
+                  <p className="text-muted-foreground mt-0.5 text-xs">
+                    <span className="text-foreground font-mono font-semibold tabular-nums">
+                      {filteredIssues.length}
+                    </span>{' '}
+                    of {issues.length} registered
+                  </p>
+                </div>
+                <AddIssueDialog
+                  projectId={projectId}
+                  projectPackages={projectPackages}
+                  nextIssueId={nextIssueId}
+                  onIssueCreated={handleIssueCreated}
+                />
               </div>
-              <AddIssueDialog
+
+              <div className="scrollbar-refined flex-1 overflow-y-auto">
+                <IssueList
+                  issues={filteredIssues}
+                  selectedIssue={selectedIssue}
+                  onSelectIssue={handleSelectIssue}
+                />
+              </div>
+            </div>
+
+            {/* Middle column — type, Description & Consequences of the selected issue */}
+            <div className="border-border/70 bg-card flex w-[19rem] shrink-0 flex-col border-r">
+              <IssueDetailsColumn
+                issue={selectedIssue}
+                people={people}
                 projectId={projectId}
                 projectPackages={projectPackages}
-                nextIssueId={nextIssueId}
-                onIssueCreated={handleIssueCreated}
+                onIssueUpdated={handleIssueUpdated}
               />
             </div>
 
-            <div className="scrollbar-refined flex-1 overflow-y-auto">
-              <IssueList issues={filteredIssues} selectedIssue={selectedIssue} onSelectIssue={handleSelectIssue} />
-            </div>
-          </div>
+            {/* Right column — recommendations & requirements above the attributes cards */}
+            <div className="bg-card/60 flex min-w-0 flex-1 flex-col">
+              {selectedIssue ? (
+                <div className="flex min-h-0 flex-1">
+                  <div className="border-border/70 flex w-60 shrink-0 flex-col border-r">
+                    <IssueRecommendationsPanel
+                      projectId={projectId}
+                      issueId={selectedIssue._id}
+                      recommendations={selectedIssue.recommendations ?? []}
+                      selectedRecommendationId={selectedRecommendationId}
+                      onSelectRecommendation={setSelectedRecommendationId}
+                      onIssueUpdated={handleIssueUpdated}
+                    />
+                  </div>
 
-          {/* Middle column — type, Description & Consequences of the selected issue */}
-          <div className="border-border/70 bg-card flex w-[19rem] shrink-0 flex-col border-r">
-            <IssueDetailsColumn
-              issue={selectedIssue}
-              projectId={projectId}
-              projectPackages={projectPackages}
-              onIssueUpdated={handleIssueUpdated}
-            />
-          </div>
-
-          {/* Right column — recommendations & requirements above the attributes cards */}
-          <div className="bg-card/60 flex min-w-0 flex-1 flex-col">
-            {selectedIssue ? (
-              <div className="flex min-h-0 flex-1">
-                <div className="border-border/70 flex w-60 shrink-0 flex-col border-r">
-                  <IssueRecommendationsPanel
+                  <IssueRequirementsPanel
                     projectId={projectId}
                     issueId={selectedIssue._id}
                     recommendations={selectedIssue.recommendations ?? []}
+                    links={links}
+                    projectPackages={projectPackages}
+                    projectIssues={issues}
                     selectedRecommendationId={selectedRecommendationId}
-                    onSelectRecommendation={setSelectedRecommendationId}
                     onIssueUpdated={handleIssueUpdated}
+                    onLinksChanged={setLinks}
                   />
                 </div>
-
-                <IssueRequirementsPanel
+              ) : (
+                <div className="flex flex-1 items-center justify-center">
+                  <div className="px-6 text-center">
+                    <p className="text-foreground text-sm font-medium">No issue selected</p>
+                    <p className="text-muted-foreground mt-1 max-w-xs text-xs leading-relaxed">
+                      Select an issue from the list to manage its recommendations, requirements and
+                      attributes.
+                    </p>
+                  </div>
+                </div>
+              )}
+              {selectedIssue && (
+                <IssueAttributesPanel
+                  key={selectedIssue._id}
                   projectId={projectId}
                   issueId={selectedIssue._id}
-                  recommendations={selectedIssue.recommendations ?? []}
-                  links={links}
-                  projectPackages={projectPackages}
-                  projectIssues={issues}
-                  selectedRecommendationId={selectedRecommendationId}
-                  onIssueUpdated={handleIssueUpdated}
-                  onLinksChanged={setLinks}
+                  hfAttributes={hfAttributes}
+                  riskAttributes={riskAttributes}
+                  actionAttributes={actionAttributes}
+                  actionValueOptions={actionValueOptions}
+                  initialHfValues={selectedIssue.hfAttributeValues ?? {}}
+                  initialRiskValues={selectedIssue.riskAttributeValues ?? {}}
+                  initialActionValues={selectedIssue.actionAttributeValues ?? {}}
                 />
-              </div>
-            ) : (
-              <div className="flex flex-1 items-center justify-center">
-                <div className="px-6 text-center">
-                  <p className="text-foreground text-sm font-medium">No issue selected</p>
-                  <p className="text-muted-foreground mt-1 max-w-xs text-xs leading-relaxed">
-                    Select an issue from the list to manage its recommendations, requirements and attributes.
-                  </p>
-                </div>
-              </div>
-            )}
-            {selectedIssue && (
-              <IssueAttributesPanel
-                key={selectedIssue._id}
-                projectId={projectId}
-                issueId={selectedIssue._id}
-                riskAttributes={riskAttributes}
-                actionAttributes={actionAttributes}
-                actionValueOptions={actionValueOptions}
-                initialRiskValues={selectedIssue.riskAttributeValues ?? {}}
-                initialActionValues={selectedIssue.actionAttributeValues ?? {}}
-              />
-            )}
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      </fieldset>
     </div>
   );
 }

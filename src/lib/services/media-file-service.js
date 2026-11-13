@@ -5,6 +5,7 @@ import { MediaFile } from '@/models/media-file';
 import { ProjectMembership } from '@/models/project-membership';
 import { getMaxFileSize, isR2Configured } from '@/lib/r2';
 import { getProjectById } from './project-service';
+import { getProjectAccess } from './access-service';
 import { hasActiveMembership } from './membership-service';
 import { collectFieldErrors } from './validation-utils';
 import {
@@ -177,8 +178,9 @@ export async function createUploadTicket(clerkUserId, payload) {
     if (!mongoose.isValidObjectId(projectId)) {
       return { ok: false, code: 'invalid', errors: { projectId: 'Invalid project reference.' } };
     }
-    const project = await getProjectById(clerkUserId, projectId);
-    if (!project) {
+    // Uploading to a project is a write: viewers may read files but not add them.
+    const access = await getProjectAccess(clerkUserId, projectId);
+    if (!access?.canEdit) {
       return { ok: false, code: 'forbidden' };
     }
     scope = 'project';

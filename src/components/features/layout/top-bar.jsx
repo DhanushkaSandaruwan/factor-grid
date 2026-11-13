@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { FolderPlus, Settings } from 'lucide-react';
 import { UserButton } from '@clerk/nextjs';
 import { buttonVariants } from '@/components/ui/button';
-import { InvitationsMenu } from '@/components/features/notifications/invitations-menu';
+import { NotificationsMenu } from '@/components/features/notifications/notifications-menu';
+import { InstallAppButton } from '@/components/features/layout/install-app-button';
 import { SearchBox } from '@/components/features/search/search-box';
 
 /**
@@ -20,10 +21,8 @@ export function TopBar({ companyName }) {
         aria-label="Go to dashboard"
       >
         {/* eslint-disable-next-line @next/next/no-img-element -- static brand SVG */}
-        <img src="/logo-mark.svg" alt="" className="size-7 shrink-0 rounded-lg shadow-soft" />
-        <span className="text-foreground truncate text-sm font-semibold tracking-tight">
-          {companyName}
-        </span>
+        <img src="/logo-mark.svg" alt="" className="shadow-soft size-7 shrink-0 rounded-lg" />
+        <span className="text-foreground truncate text-sm font-semibold tracking-tight">{companyName}</span>
       </Link>
 
       <div className="mx-auto hidden md:block">
@@ -33,7 +32,7 @@ export function TopBar({ companyName }) {
       <div className="ml-auto flex items-center gap-1 md:ml-0">
         <Link
           href="/projects/new"
-          className={buttonVariants({ size: 'sm', className: 'mr-1.5 shadow-soft' })}
+          className={buttonVariants({ size: 'sm', className: 'shadow-soft mr-1.5' })}
         >
           <FolderPlus data-icon="inline-start" />
           <span className="hidden sm:inline">New Project</span>
@@ -47,7 +46,8 @@ export function TopBar({ companyName }) {
         >
           <Settings />
         </Link>
-        <InvitationsMenu />
+        <InstallAppButton />
+        <NotificationsMenu />
         <span className="bg-border mx-1.5 hidden h-5 w-px sm:block" aria-hidden="true" />
         <UserButton />
       </div>

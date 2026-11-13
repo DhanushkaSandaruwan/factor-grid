@@ -10,6 +10,7 @@ import { WizardStepBasics } from './wizard-step-basics';
 import { WizardStepAttributes } from './wizard-step-attributes';
 import { WizardStepPackages } from './wizard-step-packages';
 import { ProjectPreview } from './project-preview';
+import { mergePreset } from '@/lib/attribute-presets';
 
 const STEPS = [
   { id: 1, label: 'Basics' },
@@ -55,16 +56,13 @@ export function NewProjectWizard({
   const isEdit = mode === 'edit';
   const [step, setStep] = useState(1);
   const [basics, setBasics] = useState(
-    initialBasics ?? { title: '', client: '', description: '', issueIdPrefix: '' }
+    initialBasics ?? { title: '', client: '', description: '', issueIdPrefix: '' },
   );
-  const [selections, setSelections] = useState(
-    initialSelections ?? { hf: [], risk: [], action: [] }
-  );
+  const [selections, setSelections] = useState(initialSelections ?? { hf: [], risk: [], action: [] });
   const [packages, setPackages] = useState(initialPackages);
-  const [selectedPackageIds, setSelectedPackageIds] = useState(
-    initialSelectedPackageIds ?? []
-  );
+  const [selectedPackageIds, setSelectedPackageIds] = useState(initialSelectedPackageIds ?? []);
   const [errors, setErrors] = useState({});
+  const [presetNotice, setPresetNotice] = useState(null);
   const [confirmed, setConfirmed] = useState(false);
   const [creatingPackage, setCreatingPackage] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -72,7 +70,7 @@ export function NewProjectWizard({
 
   const selectedPackages = useMemo(
     () => packages.filter((pkg) => selectedPackageIds.includes(String(pkg._id))),
-    [packages, selectedPackageIds]
+    [packages, selectedPackageIds],
   );
 
   const validateStep = (target) => {
@@ -102,18 +100,26 @@ export function NewProjectWizard({
       const current = prev[category];
       return {
         ...prev,
-        [category]: current.includes(name)
-          ? current.filter((item) => item !== name)
-          : [...current, name],
+        [category]: current.includes(name) ? current.filter((item) => item !== name) : [...current, name],
       };
     });
     setErrors((prev) => ({ ...prev, [category]: undefined }));
   };
 
-  const handleTogglePackage = (id) => {
-    setSelectedPackageIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+  /** Select the preset's attributes that the administrator offers; report the rest. */
+  const handleApplyPreset = (preset) => {
+    const { selections: next, missing } = mergePreset(selections, preset, attributeOptions);
+    setSelections(next);
+    setErrors({});
+    setPresetNotice(
+      missing.length > 0
+        ? `${preset.label}: not offered yet — ${missing.join(', ')}. Ask the administrator to add them under Settings → Attribute lists.`
+        : `${preset.label} applied.`,
     );
+  };
+
+  const handleTogglePackage = (id) => {
+    setSelectedPackageIds((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
     setErrors((prev) => ({ ...prev, packages: undefined }));
   };
 
@@ -132,9 +138,7 @@ export function NewProjectWizard({
       }
 
       const created = data.package;
-      setPackages((prev) =>
-        [...prev, created].sort((a, b) => a.packageId.localeCompare(b.packageId))
-      );
+      setPackages((prev) => [...prev, created].sort((a, b) => a.packageId.localeCompare(b.packageId)));
       setSelectedPackageIds((prev) => [...prev, String(created._id)]);
       return { ok: true };
     } catch {
@@ -202,7 +206,7 @@ export function NewProjectWizard({
         setFormError(
           isEdit
             ? 'Something went wrong while saving the project. Please try again.'
-            : 'Something went wrong while creating the project. Please try again.'
+            : 'Something went wrong while creating the project. Please try again.',
         );
       }
     } catch {
@@ -216,9 +220,7 @@ export function NewProjectWizard({
     <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
       <Card className="shadow-enterprise [--card-spacing:--spacing(5)]">
         <CardHeader>
-          <CardTitle className="text-xl">
-            {isEdit ? 'Edit project' : 'Create a new project'}
-          </CardTitle>
+          <CardTitle className="text-xl">{isEdit ? 'Edit project' : 'Create a new project'}</CardTitle>
           <CardDescription>
             {isEdit
               ? 'Review and update the project basics, attributes and packages.'
@@ -241,7 +243,7 @@ export function NewProjectWizard({
                       'flex size-6 shrink-0 items-center justify-center rounded-full border font-mono text-[0.68rem] font-semibold transition-colors',
                       isActive && 'border-primary bg-primary text-primary-foreground shadow-glow',
                       isDone && 'border-primary/50 bg-accent text-accent-foreground',
-                      !isActive && !isDone && 'border-border text-muted-foreground'
+                      !isActive && !isDone && 'border-border text-muted-foreground',
                     )}
                   >
                     {isDone ? '✓' : `0${id}`}
@@ -249,7 +251,7 @@ export function NewProjectWizard({
                   <span
                     className={cn(
                       'text-xs font-medium whitespace-nowrap',
-                      isActive ? 'text-foreground' : 'text-muted-foreground'
+                      isActive ? 'text-foreground' : 'text-muted-foreground',
                     )}
                   >
                     {label}
@@ -274,6 +276,8 @@ export function NewProjectWizard({
               selections={selections}
               errors={errors}
               onToggle={handleToggleAttribute}
+              onApplyPreset={handleApplyPreset}
+              presetNotice={presetNotice}
             />
           ) : null}
           {step === 3 ? (
@@ -288,11 +292,7 @@ export function NewProjectWizard({
           ) : null}
 
           <div className="flex items-center justify-between border-t pt-4">
-            <Button
-              variant="outline"
-              onClick={() => goTo(step - 1)}
-              disabled={step === 1 || submitting}
-            >
+            <Button variant="outline" onClick={() => goTo(step - 1)} disabled={step === 1 || submitting}>
               <ArrowLeft data-icon="inline-start" />
               Back
             </Button>

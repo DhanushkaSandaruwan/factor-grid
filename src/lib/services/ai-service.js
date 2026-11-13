@@ -346,3 +346,45 @@ function friendlyError(error) {
   if (error instanceof Error && error.message) return error.message;
   return 'The AI assistant failed to respond. Please try again.';
 }
+
+/**
+ * One non-streaming completion for focused tasks (for example drafting
+ * suggestions). Uses the same settings and API-key rotation as the chat.
+ * @param {Array<{role: string, content: string}>} messages
+ * @returns {Promise<string>} the model's text reply
+ */
+export async function completeChat(messages) {
+  const settings = await getAiSettings();
+  const keys = await resolveApiKeys();
+  if (keys.length === 0) {
+    throw new Error(
+      'No AI API keys configured. Add keys in the AI settings or set the GROQ_API_KEYS environment variable.'
+    );
+  }
+
+  let lastError = null;
+  for (const key of keys) {
+    const response = await fetch(`${settings.baseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key.plain}` },
+      body: JSON.stringify({
+        model: settings.model,
+        messages,
+        temperature: settings.temperature,
+        max_tokens: settings.maxTokens,
+        stream: false,
+      }),
+    });
+    if (response.status === 429 || response.status === 402) {
+      const retryAfter = Number(response.headers.get('retry-after')) || 60;
+      if (key.id) await markKeyRateLimited(key.id, retryAfter);
+      lastError = new Error(`AI API key "${key.name}" is rate-limited or out of quota.`);
+      continue;
+    }
+    if (!response.ok) throw new Error(`AI provider request failed (HTTP ${response.status}).`);
+    if (key.id) await markKeyUsed(key.id);
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content ?? '';
+  }
+  throw lastError ?? new Error('All AI API keys failed.');
+}

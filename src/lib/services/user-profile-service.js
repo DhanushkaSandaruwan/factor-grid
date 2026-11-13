@@ -1,3 +1,4 @@
+import { claimAdminIfNone } from './admin-service';
 import { z } from 'zod';
 import { connectToDatabase } from '@/lib/db';
 import { UserProfile } from '@/models/user-profile';
@@ -61,6 +62,9 @@ export async function saveUserProfile(clerkUserId, payload) {
     { $set: { clerkUserId, ...parsed.data } },
     { new: true, upsert: true, setDefaultsOnInsert: true }
   ).lean();
+
+  // First completed onboarding in a fresh installation becomes the administrator.
+  await claimAdminIfNone(clerkUserId);
 
   return { ok: true, profile };
 }

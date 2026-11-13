@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { getUserProfile, isProfileComplete } from '@/lib/services/user-profile-service';
 import { TopBar } from '@/components/features/layout/top-bar';
 import { AiAssistant } from '@/components/features/ai/ai-assistant';
+import { AppFooter } from '@/components/features/layout/app-footer';
 
 /**
  * Shell for authenticated app pages: guards auth + onboarding state and
@@ -24,6 +25,7 @@ export default async function AppLayout({ children }) {
     <div className="app-canvas flex h-svh flex-col overflow-hidden">
       <TopBar companyName={profile.companyName} />
       <main className="flex min-h-0 flex-1 flex-col">{children}</main>
+      <AppFooter />
       <AiAssistant />
     </div>
   );

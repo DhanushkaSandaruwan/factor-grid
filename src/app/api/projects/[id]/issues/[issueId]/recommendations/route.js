@@ -1,21 +1,19 @@
+import { recordAudit } from '@/lib/services/audit-service';
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { getProjectById } from '@/lib/services/project-service';
+import { denyUnlessAllowed } from '@/lib/api-guards';
 import {
   addIssueRecommendation,
   updateIssueRecommendation,
   deleteIssueRecommendation,
-} from '@/lib/services/issue-service';
+} from '@/lib/services/issue-recommendation-service';
 
 /**
  * Ensure the caller owns the project. Returns a 401/404 NextResponse or
  * null when access is granted.
  */
-async function guard(userId, projectId) {
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const project = await getProjectById(userId, projectId);
-  if (!project) return NextResponse.json({ error: 'Project not found' }, { status: 404 });
-  return null;
+async function guard(userId, projectId, request) {
+  return denyUnlessAllowed(request, userId, projectId);
 }
 
 /**
@@ -26,7 +24,7 @@ export async function POST(request, { params }) {
   const { userId } = await auth();
   const { id, issueId } = await params;
 
-  const denied = await guard(userId, id);
+  const denied = await guard(userId, id, request);
   if (denied) return denied;
 
   let body;
@@ -46,6 +44,13 @@ export async function POST(request, { params }) {
 
   if (!result) return NextResponse.json({ error: 'Issue not found' }, { status: 404 });
   if (!result.ok) return NextResponse.json({ errors: result.errors }, { status: 400 });
+  await recordAudit({
+    projectId: id,
+    issueId: issueId,
+    actor: userId,
+    action: 'recommendation.added',
+    summary: 'Added a recommendation',
+  });
   return NextResponse.json({ issue: result.issue }, { status: 201 });
 }
 
@@ -57,7 +62,7 @@ export async function PATCH(request, { params }) {
   const { userId } = await auth();
   const { id, issueId } = await params;
 
-  const denied = await guard(userId, id);
+  const denied = await guard(userId, id, request);
   if (denied) return denied;
 
   let body;
@@ -77,6 +82,13 @@ export async function PATCH(request, { params }) {
 
   if (!result) return NextResponse.json({ error: 'Recommendation not found' }, { status: 404 });
   if (!result.ok) return NextResponse.json({ errors: result.errors }, { status: 400 });
+  await recordAudit({
+    projectId: id,
+    issueId: issueId,
+    actor: userId,
+    action: 'recommendation.updated',
+    summary: 'Edited a recommendation',
+  });
   return NextResponse.json({ issue: result.issue });
 }
 
@@ -88,7 +100,7 @@ export async function DELETE(request, { params }) {
   const { userId } = await auth();
   const { id, issueId } = await params;
 
-  const denied = await guard(userId, id);
+  const denied = await guard(userId, id, request);
   if (denied) return denied;
 
   const recommendationId = new URL(request.url).searchParams.get('recommendationId');
@@ -105,5 +117,12 @@ export async function DELETE(request, { params }) {
   }
 
   if (!issue) return NextResponse.json({ error: 'Recommendation not found' }, { status: 404 });
+  await recordAudit({
+    projectId: id,
+    issueId: issueId,
+    actor: userId,
+    action: 'recommendation.deleted',
+    summary: 'Deleted a recommendation',
+  });
   return NextResponse.json({ issue });
 }

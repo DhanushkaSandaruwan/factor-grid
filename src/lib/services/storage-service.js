@@ -157,3 +157,17 @@ export async function deleteObject(key) {
   const { bucket } = getR2Config();
   await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
 }
+
+/**
+ * Read an object from R2 into memory (used for files that must be kept and
+ * re-read, such as uploaded registry imports).
+ * @param {string} key
+ * @returns {Promise<Buffer>}
+ */
+export async function getObjectBuffer(key) {
+  const client = getR2Client();
+  const { bucket } = getR2Config();
+  const result = await client.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
+  const bytes = await result.Body.transformToByteArray();
+  return Buffer.from(bytes);
+}

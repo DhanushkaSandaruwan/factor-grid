@@ -1,21 +1,16 @@
+import { recordAudit } from '@/lib/services/audit-service';
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { getProjectById } from '@/lib/services/project-service';
-import {
-  attachRequirementEvidence,
-  detachRequirementEvidence,
-} from '@/lib/services/requirement-service';
+import { denyUnlessAllowed } from '@/lib/api-guards';
+import { attachRequirementEvidence, detachRequirementEvidence } from '@/lib/services/requirement-service';
 import { deleteFileForUser } from '@/lib/services/media-file-service';
 
 /**
  * Ensure the caller owns the project. Returns a 401/404 NextResponse or
  * null when access is granted.
  */
-async function guard(userId, projectId) {
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const project = await getProjectById(userId, projectId);
-  if (!project) return NextResponse.json({ error: 'Project not found' }, { status: 404 });
-  return null;
+async function guard(userId, projectId, request) {
+  return denyUnlessAllowed(request, userId, projectId);
 }
 
 /**
@@ -27,7 +22,7 @@ export async function POST(request, { params }) {
   const { userId } = await auth();
   const { id, issueId, reqId } = await params;
 
-  const denied = await guard(userId, id);
+  const denied = await guard(userId, id, request);
   if (denied) return denied;
 
   let body;
@@ -47,6 +42,13 @@ export async function POST(request, { params }) {
 
   if (!result) return NextResponse.json({ error: 'Requirement not found' }, { status: 404 });
   if (!result.ok) return NextResponse.json({ errors: result.errors }, { status: 400 });
+  await recordAudit({
+    projectId: id,
+    issueId: issueId,
+    actor: userId,
+    action: 'evidence.attached',
+    summary: `Attached evidence ${body.filename}`,
+  });
   return NextResponse.json({ issue: result.issue }, { status: 201 });
 }
 
@@ -59,17 +61,14 @@ export async function DELETE(request, { params }) {
   const { userId } = await auth();
   const { id, issueId, reqId } = await params;
 
-  const denied = await guard(userId, id);
+  const denied = await guard(userId, id, request);
   if (denied) return denied;
 
   const searchParams = new URL(request.url).searchParams;
   const recommendationId = searchParams.get('recommendationId');
   const fileId = searchParams.get('fileId');
   if (!recommendationId || !fileId) {
-    return NextResponse.json(
-      { error: 'recommendationId and fileId are required' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'recommendationId and fileId are required' }, { status: 400 });
   }
 
   let issue;
@@ -89,5 +88,12 @@ export async function DELETE(request, { params }) {
     console.error('[api/evidence] failed to delete stored file:', error);
   }
 
+  await recordAudit({
+    projectId: id,
+    issueId: issueId,
+    actor: userId,
+    action: 'evidence.removed',
+    summary: 'Removed an evidence file',
+  });
   return NextResponse.json({ issue });
 }

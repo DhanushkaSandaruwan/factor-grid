@@ -1,6 +1,8 @@
+import { recordAudit } from '@/lib/services/audit-service';
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { getProjectById } from '@/lib/services/project-service';
+import { guardProject } from '@/lib/api-guards';
 import { getIssuesByProject, createIssue } from '@/lib/services/issue-service';
 
 /**
@@ -29,10 +31,8 @@ export async function POST(request, { params }) {
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const { id } = await params;
-  const project = await getProjectById(userId, id);
-  if (!project) {
-    return NextResponse.json({ error: 'Project not found' }, { status: 404 });
-  }
+  const { project, response } = await guardProject(userId, id, { write: true });
+  if (response) return response;
 
   let body;
   try {
@@ -53,5 +53,12 @@ export async function POST(request, { params }) {
     return NextResponse.json({ errors: result.errors }, { status: 400 });
   }
 
+  await recordAudit({
+    projectId: id,
+    issueId: result.issue._id,
+    actor: userId,
+    action: 'issue.created',
+    summary: `Registered ${result.issue.issueId}: ${result.issue.title}`,
+  });
   return NextResponse.json({ issue: result.issue }, { status: 201 });
 }

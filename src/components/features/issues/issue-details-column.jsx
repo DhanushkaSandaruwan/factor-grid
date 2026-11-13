@@ -6,6 +6,9 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Select } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { AddIssueDialog } from './add-issue-dialog';
+import { IssueWorkflowRow } from './issue-workflow-row';
+import { IssueCommentsDialog } from './issue-comments-dialog';
+import { IssueAiDialog } from './issue-ai-dialog';
 
 /**
  * Detects whether the row's content is taller than its fixed-height
@@ -146,7 +149,7 @@ function IssueTypeRow({ issue, projectId, onIssueUpdated }) {
  *
  * @param {{ issue: object | null, projectId: string, projectPackages: object[], onIssueUpdated: (issue: object) => void }} props
  */
-export function IssueDetailsColumn({ issue, projectId, projectPackages, onIssueUpdated }) {
+export function IssueDetailsColumn({ issue, projectId, projectPackages, people = [], onIssueUpdated }) {
   const [editOpen, setEditOpen] = useState(false);
 
   if (!issue) {
@@ -154,7 +157,9 @@ export function IssueDetailsColumn({ issue, projectId, projectPackages, onIssueU
       <div className="flex flex-1 items-center justify-center px-6 text-center">
         <div>
           <p className="text-foreground text-sm font-medium">No issue selected</p>
-          <p className="text-muted-foreground mt-1 text-xs">Select an issue from the list to view its details.</p>
+          <p className="text-muted-foreground mt-1 text-xs">
+            Select an issue from the list to view its details.
+          </p>
         </div>
       </div>
     );
@@ -162,7 +167,16 @@ export function IssueDetailsColumn({ issue, projectId, projectPackages, onIssueU
 
   return (
     <>
+      <IssueWorkflowRow
+        key={`wf-${issue._id}`}
+        issue={issue}
+        people={people}
+        projectId={projectId}
+        onIssueUpdated={onIssueUpdated}
+      />
       <IssueTypeRow key={issue._id} issue={issue} projectId={projectId} onIssueUpdated={onIssueUpdated} />
+      <IssueCommentsDialog projectId={projectId} issueId={issue._id} issueCode={issue.issueId} />
+      <IssueAiDialog projectId={projectId} issue={issue} onIssueUpdated={onIssueUpdated} />
       <DetailRow label="Description" content={issue.description} onEdit={() => setEditOpen(true)} />
       <div className="border-border/70 border-t" />
       <DetailRow label="Consequences" content={issue.consequences} onEdit={() => setEditOpen(true)} />

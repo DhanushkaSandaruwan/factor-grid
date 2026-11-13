@@ -11,12 +11,7 @@ import { collectFieldErrors } from './validation-utils';
    ----------------------------------------------------------------------- */
 
 const createIssueSchema = z.object({
-  source: z
-    .string()
-    .trim()
-    .max(200, 'Source must be 200 characters or fewer')
-    .optional()
-    .default(''),
+  source: z.string().trim().max(200, 'Source must be 200 characters or fewer').optional().default(''),
   title: z
     .string()
     .trim()
@@ -69,10 +64,11 @@ export function toSerializable(issue) {
     _id: String(issue._id),
     project: String(issue.project),
     packages: (issue.packages ?? []).map((p) =>
-      typeof p === 'object' ? { ...p, _id: String(p._id) } : String(p)
+      typeof p === 'object' ? { ...p, _id: String(p._id) } : String(p),
     ),
     riskAttributeValues: toPlainObject(issue.riskAttributeValues),
     actionAttributeValues: toPlainObject(issue.actionAttributeValues),
+    hfAttributeValues: toPlainObject(issue.hfAttributeValues),
     recommendations: (issue.recommendations ?? []).map((r) => ({
       ...r,
       _id: String(r._id),
@@ -154,12 +150,7 @@ const updateIssueSchema = z.object({
     .trim()
     .min(3, 'Title must be at least 3 characters')
     .max(200, 'Title must be 200 characters or fewer'),
-  source: z
-    .string()
-    .trim()
-    .max(200, 'Source must be 200 characters or fewer')
-    .optional()
-    .default(''),
+  source: z.string().trim().max(200, 'Source must be 200 characters or fewer').optional().default(''),
   packageIds: z.array(z.string()).optional().default([]),
   description: z
     .string()
@@ -210,9 +201,7 @@ export async function updateIssue(issueId, projectId, payload) {
 
   await issue.save();
 
-  const fresh = await Issue.findOne({ _id: issue._id })
-    .populate('packages', 'packageId description')
-    .lean();
+  const fresh = await Issue.findOne({ _id: issue._id }).populate('packages', 'packageId description').lean();
   return { ok: true, issue: toSerializable(fresh) };
 }
 
@@ -242,7 +231,7 @@ export async function updateIssueType(issueId, projectId, payload) {
   const issue = await Issue.findOneAndUpdate(
     { _id: new mongoose.Types.ObjectId(issueId), project: new mongoose.Types.ObjectId(projectId) },
     { issueType: parsed.data.issueType },
-    { new: true }
+    { new: true },
   )
     .populate('packages', 'packageId description')
     .lean();
@@ -275,95 +264,10 @@ export async function updateIssueAttributeValues(issueId, projectId, values = {}
   for (const [name, value] of Object.entries(values.actionValues ?? {})) {
     issue.actionAttributeValues.set(name, value == null ? '' : String(value));
   }
-
-  await issue.save();
-  return toSerializable(issue.toObject());
-}
-
-/* -----------------------------------------------------------------------
-   Recommendations
-   ----------------------------------------------------------------------- */
-
-const recommendationTextSchema = z
-  .string()
-  .trim()
-  .min(1, 'Recommendation text is required')
-  .max(4000, 'Recommendation must be 4000 characters or fewer');
-
-/** Find an issue scoped to a project, or null. */
-async function findIssue(issueId, projectId) {
-  if (!mongoose.isValidObjectId(issueId) || !mongoose.isValidObjectId(projectId)) return null;
-  await connectToDatabase();
-  return Issue.findOne({
-    _id: new mongoose.Types.ObjectId(issueId),
-    project: new mongoose.Types.ObjectId(projectId),
-  });
-}
-
-/**
- * Append a new free-text recommendation to an issue.
- *
- * @param {string} issueId
- * @param {string} projectId
- * @param {unknown} text
- * @returns {Promise<{ok: true, issue: object} | {ok: false, errors: Record<string, string>} | null>}
- */
-export async function addIssueRecommendation(issueId, projectId, text) {
-  const issue = await findIssue(issueId, projectId);
-  if (!issue) return null;
-
-  const parsed = recommendationTextSchema.safeParse(text);
-  if (!parsed.success) {
-    return { ok: false, errors: collectFieldErrors(parsed.error) };
+  for (const [name, value] of Object.entries(values.hfValues ?? {})) {
+    issue.hfAttributeValues.set(name, value === true);
   }
 
-  issue.recommendations.push({ text: parsed.data });
-  await issue.save();
-  return { ok: true, issue: toSerializable(issue.toObject()) };
-}
-
-/**
- * Update the text of a single recommendation on an issue.
- *
- * @param {string} issueId
- * @param {string} projectId
- * @param {string} recommendationId - subdocument id
- * @param {unknown} text
- * @returns {Promise<{ok: true, issue: object} | {ok: false, errors: Record<string, string>} | null>}
- */
-export async function updateIssueRecommendation(issueId, projectId, recommendationId, text) {
-  const issue = await findIssue(issueId, projectId);
-  if (!issue) return null;
-
-  const sub = issue.recommendations.id(recommendationId);
-  if (!sub) return null;
-
-  const parsed = recommendationTextSchema.safeParse(text);
-  if (!parsed.success) {
-    return { ok: false, errors: collectFieldErrors(parsed.error) };
-  }
-
-  sub.text = parsed.data;
-  await issue.save();
-  return { ok: true, issue: toSerializable(issue.toObject()) };
-}
-
-/**
- * Remove a single recommendation from an issue.
- *
- * @param {string} issueId
- * @param {string} projectId
- * @param {string} recommendationId - subdocument id
- * @returns {Promise<object|null>} the updated issue, or null if not found
- */
-export async function deleteIssueRecommendation(issueId, projectId, recommendationId) {
-  const issue = await findIssue(issueId, projectId);
-  if (!issue) return null;
-
-  const sub = issue.recommendations.id(recommendationId);
-  if (!sub) return null;
-
-  sub.deleteOne();
   await issue.save();
   return toSerializable(issue.toObject());
 }
@@ -497,6 +401,6 @@ export async function getIssueStatsByProject(projectIds) {
         recommendations: row.recommendations,
         requirements: row.requirements,
       },
-    ])
+    ]),
   );
 }

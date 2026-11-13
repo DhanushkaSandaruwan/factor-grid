@@ -1,5 +1,6 @@
 import { connectToDatabase } from '@/lib/db';
 import { AttributeOption } from '@/models/attribute-option';
+import { DERIVED_HF_ATTRIBUTES, normalizeAttributeName } from '@/lib/attribute-rules';
 
 export const ATTRIBUTE_CATEGORIES = ['hf', 'risk', 'action', 'action_type'];
 
@@ -26,7 +27,7 @@ async function seedDefaultOptions() {
   if (count > 0) return;
 
   const docs = Object.entries(DEFAULT_OPTIONS).flatMap(([category, names]) =>
-    names.map((name, order) => ({ category, name, order, active: true }))
+    names.map((name, order) => ({ category, name, order, active: true })),
   );
 
   // The "Action Type" action attribute draws its dropdown values from the
@@ -53,9 +54,7 @@ export async function getAttributeOptions() {
   await connectToDatabase();
   await seedDefaultOptions();
 
-  const docs = await AttributeOption.find({ active: true })
-    .sort({ category: 1, order: 1, name: 1 })
-    .lean();
+  const docs = await AttributeOption.find({ active: true }).sort({ category: 1, order: 1, name: 1 }).lean();
 
   const grouped = { hf: [], risk: [], action: [], action_type: [] };
   for (const doc of docs) {
@@ -73,29 +72,54 @@ export async function getAttributeOptions() {
 }
 
 /**
- * Validate a wizard attribute selection against the database.
+ * Check a wizard attribute selection against the lists the administrator
+ * maintains. Each name must be an offered option (matched case-insensitively
+ * and stored under its offered spelling). A name already on the project being
+ * edited is also accepted, so an existing project can still be saved.
+ *
  * @param {{hf?: string[], risk?: string[], action?: string[]}} selections
- * @returns {Promise<Record<string, string>>} errors keyed by category
+ * @param {{hf?: string[], risk?: string[], action?: string[]}} [existing] - attributes the project already has
+ * @returns {Promise<{selections: {hf: string[], risk: string[], action: string[]}, errors: Record<string, string>}>}
  */
-export async function validateAttributeSelections(selections) {
+export async function resolveAttributeSelections(selections, existing = {}) {
   await connectToDatabase();
+  const offered = await AttributeOption.find({
+    category: { $in: WIZARD_CATEGORIES },
+    active: true,
+  }).lean();
+
+  const resolved = { hf: [], risk: [], action: [] };
   const errors = {};
 
   for (const category of WIZARD_CATEGORIES) {
-    const names = [...new Set(selections[category] ?? [])];
-    if (names.length === 0) {
+    const canonicalByKey = new Map(
+      offered.filter((doc) => doc.category === category).map((doc) => [doc.name.toLowerCase(), doc.name]),
+    );
+    if (category === 'hf') {
+      DERIVED_HF_ATTRIBUTES.forEach((name) => canonicalByKey.set(name.toLowerCase(), name));
+    }
+    const kept = new Map((existing[category] ?? []).map((name) => [name.toLowerCase(), name]));
+
+    const seen = new Set();
+    const names = [];
+    const unknown = [];
+    for (const raw of selections[category] ?? []) {
+      const name = normalizeAttributeName(raw);
+      const key = name.toLowerCase();
+      if (!name || seen.has(key)) continue;
+      seen.add(key);
+      const canonical = canonicalByKey.get(key) ?? kept.get(key);
+      if (canonical) names.push(canonical);
+      else unknown.push(name);
+    }
+
+    if (unknown.length > 0) {
+      errors[category] = `Not offered: ${unknown.join(', ')}. Choose from the list.`;
+    } else if (names.length === 0) {
       errors[category] = 'Select at least one option.';
-      continue;
     }
-    const found = await AttributeOption.countDocuments({
-      category,
-      name: { $in: names },
-      active: true,
-    });
-    if (found !== names.length) {
-      errors[category] = 'One or more selected options are no longer available.';
-    }
+    resolved[category] = names;
   }
 
-  return errors;
+  return { selections: resolved, errors };
 }

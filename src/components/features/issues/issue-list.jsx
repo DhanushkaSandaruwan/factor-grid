@@ -25,6 +25,7 @@ function IssueRow({ issue, isSelected, onSelectIssue }) {
   const [expanded, setExpanded] = useState(false);
   const cfg = STATUS_CONFIG[issue.status] ?? STATUS_CONFIG.open;
   const StatusIcon = cfg.icon;
+  const overdue = issue.status === 'open' && issue.dueDate && new Date(issue.dueDate).getTime() < Date.now();
 
   return (
     <div className="border-border/70 relative border-b last:border-0">
@@ -33,7 +34,7 @@ function IssueRow({ issue, isSelected, onSelectIssue }) {
         aria-hidden="true"
         className={cn(
           'absolute inset-y-0 left-0 w-0.5 rounded-r transition-opacity',
-          isSelected ? 'bg-primary opacity-100' : 'opacity-0'
+          isSelected ? 'bg-primary opacity-100' : 'opacity-0',
         )}
       />
       {/* Summary row — always visible. A div (not button) so the expand
@@ -51,23 +52,26 @@ function IssueRow({ issue, isSelected, onSelectIssue }) {
         }}
         className={cn(
           'group focus-ring flex w-full cursor-pointer items-start gap-3 py-3 pr-3 pl-4 text-left transition-colors outline-none focus-visible:ring-inset',
-          isSelected ? 'bg-accent/50' : 'hover:bg-muted/50'
+          isSelected ? 'bg-accent/50' : 'hover:bg-muted/50',
         )}
       >
         <span className={cn('mt-1.5 size-1.5 shrink-0 rounded-full', cfg.dot)} />
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className="text-muted-foreground font-mono text-[0.72rem] font-semibold">{issue.issueId}</span>
+            <span className="text-muted-foreground font-mono text-[0.72rem] font-semibold">
+              {issue.issueId}
+            </span>
             <Badge tone={cfg.tone}>
               <StatusIcon aria-hidden="true" />
               {cfg.label}
             </Badge>
+            {overdue && <Badge tone="danger">Overdue</Badge>}
           </div>
           <p
             className={cn(
               'mt-1 text-sm leading-snug font-medium',
-              isSelected ? 'text-foreground' : 'text-foreground/85 group-hover:text-foreground'
+              isSelected ? 'text-foreground' : 'text-foreground/85 group-hover:text-foreground',
             )}
           >
             {issue.title}
