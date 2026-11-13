@@ -38,6 +38,7 @@ export function ConnectionGate() {
   const [offline, setOffline] = useState(false);
   const [checking, setChecking] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const overlayRef = useRef(null);
   const dialogRef = useRef(null);
 
   useEffect(() => {
@@ -72,7 +73,7 @@ export function ConnectionGate() {
   // clicked or reached with the keyboard.
   useEffect(() => {
     if (!offline) return undefined;
-    const siblings = Array.from(document.body.children).filter((el) => el !== dialogRef.current?.parentNode);
+    const siblings = Array.from(document.body.children).filter((el) => el !== overlayRef.current);
     const previous = siblings.map((el) => el.inert);
     siblings.forEach((el) => {
       el.inert = true;
@@ -89,6 +90,7 @@ export function ConnectionGate() {
 
   return createPortal(
     <div
+      ref={overlayRef}
       className="bg-background/60 fixed inset-0 z-[200] flex items-center justify-center p-4 backdrop-blur-md"
       role="presentation"
     >
